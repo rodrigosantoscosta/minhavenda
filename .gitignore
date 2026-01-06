@@ -1,0 +1,258 @@
+# === JAVA ===
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.ctxt
+.mtj.tmp/
+hs_err_pid*
+replay_pid*
+
+# === MAVEN ===
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# === GRADLE (se usar) ===
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# === SPRING BOOT ===
+.springBeans
+spring-boot-starter-parent/
+
+# === INTELLIJ IDEA ===
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+*.iml.bak
+
+# === VS CODE ===
+.vscode/
+.factorypath
+.settings/
+.classpath
+.project
+
+# === ECLIPSE ===
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# === NETBEANS ===
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# === SISTEMA OPERACIONAL ===
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# === LOGS ===
+*.log
+logs/
+*.log.*
+log/
+
+# === BANCO DE DADOS ===
+*.db
+*.sqlite
+*.sqlite3
+*.sql.backup
+*.dump
+
+# ========================================
+# === ARQUIVOS SENSÍVEIS - CRÍTICO! ===
+# ========================================
+
+# Variáveis de Ambiente
+src/.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+*.env
+!.env.example
+
+# Properties Sensíveis
+application-local.properties
+application-prod.properties
+application-production.properties
+application-secrets.properties
+application-*.properties
+!application.properties
+!application-example.properties
+
+# Secrets e Credentials
+*secret*
+*secrets*
+*credentials*
+*password*
+*passwd*
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# Certificados e Keys
+*.crt
+*.cer
+*.der
+*.pfx
+certificate/
+certificates/
+ssl/
+tls/
+
+# Tokens e API Keys
+*token*
+*apikey*
+*api-key*
+.apikeys
+jwt-secret.txt
+
+# AWS
+.aws/
+aws-credentials
+credentials.csv
+
+# Docker Secrets
+docker-compose.override.yml
+.dockerenv
+compose.yaml
+docker-compose.yml
+# Kubernetes Secrets
+*-secret.yaml
+*-secret.yml
+
+# === UPLOADS E MÍDIA ===
+uploads/
+upload/
+storage/
+media/
+temp-uploads/
+tmp-uploads/
+
+# === BACKUP ===
+*.backup
+*.bak
+*.old
+backup/
+backups/
+
+# === CACHE ===
+.cache/
+.temp/
+.tmp/
+cache/
+lixo/
+
+# === NODE (se usar frontend) ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn-integrity
+
+# === DOCUMENTAÇÃO GERADA ===
+javadoc/
+apidocs/
+site/
+
+# === TESTES ===
+coverage/
+*.cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# === SONARQUBE ===
+.sonar/
+.scannerwork/
+
+# === OUTROS ===
+*.zip
+*.tar.gz
+*.rar
+*.7z
+.temp/
+
+# === FERRAMENTAS DE DESENVOLVIMENTO ===
+.history/
+*.swp
+*.swo
+*~
+.project
+.settings
+.classpath
+
+# === ANSIBLE/TERRAFORM (se usar) ===
+*.tfstate
+*.tfstate.*
+.terraform/
+ansible.cfg
+
+# === JETBRAINS ESPECÍFICO ===
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/aws.xml
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
