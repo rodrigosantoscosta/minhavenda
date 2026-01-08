@@ -72,7 +72,10 @@ public class SecurityConfig {
                                 "/swagger-ui.html",       // Swagger HTML
                                 "/swagger-resources/**",  // Swagger resources
                                 "/webjars/**",            // Swagger webjars
-                                "/h2-console/**"          // H2 Console (DEV)
+                                "/h2-console/**",          // H2 Console (DEV)
+                                "/produtos/**",
+                                "/categorias/**"
+
                         ).permitAll()
 
                         // TODOS os outros endpoints precisam autenticação

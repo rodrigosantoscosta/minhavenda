@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,12 @@ import java.util.UUID;
 
 /**
  * Controller REST para operações com Produtos.
+ *
+ * Níveis de acesso:
+ * - GET (listar/buscar): PÚBLICO - Qualquer pessoa
+ * - POST (criar): ADMIN apenas
+ * - PUT (atualizar): ADMIN apenas
+ * - DELETE (excluir): ADMIN apenas
  */
 @RestController
 @RequestMapping("/produtos")
@@ -34,24 +41,10 @@ public class ProdutoController {
 
 
     /**
-     * Cria um novo produto.
-     * POST /produtos
-     * 
-     * @param produtoDTO Dados do produto a ser criado
-     * @return Produto criado com status 201 (Created)
-     */
-    @PostMapping
-    @Operation(summary = "Criar novo produto", 
-              description = "Cria um novo produto com os dados fornecidos")
-    public ResponseEntity<ProdutoDTO> criarProduto(@Valid @RequestBody ProdutoDTO produtoDTO) {
-        ProdutoDTO produtoCriado = criarProdutoUseCase.execute(produtoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
-    }
-
-
-    /**
      * Lista todos os produtos ativos (sem paginação).
      * GET /produtos
+     *
+     * PÚBLICO - Não precisa autenticação
      */
     @GetMapping
     @Operation(summary = "Listar produtos ativos", description = "Retorna lista de todos os produtos ativos")
@@ -63,6 +56,8 @@ public class ProdutoController {
     /**
      * Lista produtos ativos com paginação.
      * GET /produtos/paginado?page=0&size=20&sort=nome,asc
+     *
+     * PÚBLICO - Não precisa autenticação
      */
     @GetMapping("/paginado")
     @Operation(summary = "Listar produtos com paginação", description = "Retorna produtos ativos paginados")
@@ -72,19 +67,21 @@ public class ProdutoController {
             @RequestParam(defaultValue = "nome") String sort,
             @RequestParam(defaultValue = "asc") String direction
     ) {
-        Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") 
-                ? Sort.Direction.DESC 
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC
                 : Sort.Direction.ASC;
-        
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         Page<ProdutoDTO> produtos = listarProdutosUseCase.executar(pageable);
-        
+
         return ResponseEntity.ok(produtos);
     }
 
     /**
      * Busca produto por ID.
      * GET /produtos/{id}
+     *
+     * PÚBLICO - Não precisa autenticação
      */
     @GetMapping("/{id}")
     @Operation(summary = "Buscar produto por ID", description = "Retorna um produto específico")
@@ -97,8 +94,11 @@ public class ProdutoController {
     /**
      * Lista todos os produtos (incluindo inativos).
      * GET /produtos/todos
+     *
+     * PROTEGIDO - Apenas ADMIN
      */
     @GetMapping("/todos")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos produtos", description = "Retorna todos os produtos (ativos e inativos)")
     public ResponseEntity<List<ProdutoDTO>> listarTodos() {
         List<ProdutoDTO> produtos = listarProdutosUseCase.listarTodos();
@@ -108,8 +108,11 @@ public class ProdutoController {
     /**
      * Lista todos os produtos com paginação (incluindo inativos).
      * GET /produtos/todos/paginado?page=0&size=20
+     *
+     * PROTEGIDO - Apenas ADMIN
      */
     @GetMapping("/todos/paginado")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos produtos com paginação", description = "Retorna todos os produtos paginados")
     public ResponseEntity<Page<ProdutoDTO>> listarTodosPaginado(
             @RequestParam(defaultValue = "0") int page,
@@ -118,7 +121,22 @@ public class ProdutoController {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         Page<ProdutoDTO> produtos = listarProdutosUseCase.listarTodos(pageable);
-        
+
         return ResponseEntity.ok(produtos);
+    }
+
+    /**
+     * Cria um novo produto.
+     * POST /produtos
+     *
+     * PROTEGIDO - Apenas ADMIN pode criar produtos
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Criar novo produto",
+            description = "Cria um novo produto com os dados fornecidos. Apenas ADMIN.")
+    public ResponseEntity<ProdutoDTO> criarProduto(@Valid @RequestBody ProdutoDTO produtoDTO) {
+        ProdutoDTO produtoCriado = criarProdutoUseCase.execute(produtoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
     }
 }
