@@ -89,3 +89,7 @@ SELECT 'Categorias inseridas:' as info, COUNT(*) as total FROM categorias;
 SELECT 'Produtos ativos:' as info, COUNT(*) as total FROM produtos WHERE ativo = true;
 SELECT 'Produtos inativos:' as info, COUNT(*) as total FROM produtos WHERE ativo = false;
 SELECT 'Total de produtos:' as info, COUNT(*) as total FROM produtos;
+select * from produtos;
+
+-- Resetar sequence
+SELECT setval('categorias_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categorias) + 1);

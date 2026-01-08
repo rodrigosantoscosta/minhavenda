@@ -1,4 +1,4 @@
-package br.com.minhavenda.minhavenda.application.usecase;
+package br.com.minhavenda.minhavenda.application.usecase.produto;
 
 import br.com.minhavenda.minhavenda.application.dto.ProdutoDTO;
 import br.com.minhavenda.minhavenda.application.mapper.ProdutoMapper;

@@ -1,15 +1,18 @@
 package br.com.minhavenda.minhavenda.presentation.controller;
 
 import br.com.minhavenda.minhavenda.application.dto.ProdutoDTO;
-import br.com.minhavenda.minhavenda.application.usecase.BuscarProdutoPorIdUseCase;
-import br.com.minhavenda.minhavenda.application.usecase.ListarProdutosUseCase;
+import br.com.minhavenda.minhavenda.application.usecase.produto.BuscarProdutoPorIdUseCase;
+import br.com.minhavenda.minhavenda.application.usecase.produto.CriarProdutoUseCase;
+import br.com.minhavenda.minhavenda.application.usecase.produto.ListarProdutosUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,18 +30,23 @@ public class ProdutoController {
 
     private final ListarProdutosUseCase listarProdutosUseCase;
     private final BuscarProdutoPorIdUseCase buscarProdutoPorIdUseCase;
+    private final CriarProdutoUseCase criarProdutoUseCase;
 
 
     /**
      * Cria um novo produto.
      * POST /produtos
+     * 
+     * @param produtoDTO Dados do produto a ser criado
+     * @return Produto criado com status 201 (Created)
      */
-//    @PostMapping
-//    @Operation(summary = "Criar novo produto", description = "Cria um novo produto")
-//    public ResponseEntity<ProdutoDTO> criarProduto(@RequestBody ProdutoDTO produtoDTO) {
-//
-//        return ResponseEntity.status(201).body(createdProduto);
-//    }
+    @PostMapping
+    @Operation(summary = "Criar novo produto", 
+              description = "Cria um novo produto com os dados fornecidos")
+    public ResponseEntity<ProdutoDTO> criarProduto(@Valid @RequestBody ProdutoDTO produtoDTO) {
+        ProdutoDTO produtoCriado = criarProdutoUseCase.execute(produtoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
+    }
 
 
     /**

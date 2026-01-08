@@ -12,6 +12,7 @@ import java.time.Instant;
     @Index(name = "idx_categoria_ativo", columnList = "ativo")
 })
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -30,8 +31,6 @@ public class Categoria {
     @Column(nullable = false)
     @Builder.Default
     private Boolean ativo = true;
-
-
 
     @CreationTimestamp
     @Column(name = "data_cadastro", nullable = false, updatable = false)
