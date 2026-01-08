@@ -1,7 +1,8 @@
-package br.com.minhavenda.minhavenda.domain.valueobject;
+package br.com.minhavenda.minhavenda.domain.entity;
 
-import br.com.minhavenda.minhavenda.domain.valueobject.Email;
+import br.com.minhavenda.minhavenda.domain.enums.TipoUsuario;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -25,16 +26,14 @@ public class Usuario {
     @Column(nullable = false, length = 150)
     private String nome;
 
-    @Embedded
-    @AttributeOverride(name = "valor", column = @Column(name = "email", nullable = false, unique = true))
-    private Email email;
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
 
-    @Column(name = "senha_hash", nullable = false, length = 255)
+    @Column(nullable = false, length = 255)
     private String senhaHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private Role role;
+    private TipoUsuario tipo;
 
     @Column(nullable = false)
     @Builder.Default
@@ -53,12 +52,16 @@ public class Usuario {
         this.ativo = false;
     }
 
-    public boolean isAdmin() {
-        return this.role == Role.ADMIN;
+    public boolean isAtivo() {
+        return this.ativo != null && this.ativo;
     }
 
-    public boolean isCustomer() {
-        return this.role == Role.CUSTOMER;
+    public boolean isAdmin() {
+        return this.tipo == TipoUsuario.ADMIN;
+    }
+
+    public boolean isCliente() {
+        return this.tipo == TipoUsuario.CLIENTE;
     }
 
     public void atualizarSenha(String novaSenhaHash) {
@@ -66,10 +69,5 @@ public class Usuario {
             throw new IllegalArgumentException("Senha hash não pode ser vazia");
         }
         this.senhaHash = novaSenhaHash;
-    }
-
-    public enum Role {
-        ADMIN,
-        CUSTOMER
     }
 }

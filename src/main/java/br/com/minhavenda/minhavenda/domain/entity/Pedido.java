@@ -1,7 +1,6 @@
 package br.com.minhavenda.minhavenda.domain.entity;
 
 import br.com.minhavenda.minhavenda.domain.valueobject.Money;
-import br.com.minhavenda.minhavenda.domain.valueobject.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

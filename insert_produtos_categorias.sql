@@ -93,3 +93,10 @@ select * from produtos;
 
 -- Resetar sequence
 SELECT setval('categorias_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categorias) + 1);
+
+ALTER TABLE usuarios RENAME COLUMN role TO tipo;
+
+-- Drop table pra eliminar tipo
+DROP TABLE IF EXISTS usuarios CASCADE;
+
+

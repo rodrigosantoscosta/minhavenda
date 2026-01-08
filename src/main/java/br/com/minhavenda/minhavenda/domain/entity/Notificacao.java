@@ -1,6 +1,6 @@
 package br.com.minhavenda.minhavenda.domain.entity;
 
-import br.com.minhavenda.minhavenda.domain.valueobject.Usuario;
+import br.com.minhavenda.minhavenda.domain.entity.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 
