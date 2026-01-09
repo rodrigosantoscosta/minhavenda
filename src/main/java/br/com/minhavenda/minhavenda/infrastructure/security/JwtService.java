@@ -38,13 +38,13 @@ public class JwtService {
      * Gerar chave segura:
      * openssl rand -base64 64
      */
-    @Value("${jwt.secret}")
+    @Value("${security.jwt.secret}")
     private String secretKey;
 
     /**
      * Tempo de expiração do token em milissegundos.
      */
-    @Value("${jwt.expiration}")
+    @Value("${security.jwt.expiration}")
     private long jwtExpiration;
 
     /**
