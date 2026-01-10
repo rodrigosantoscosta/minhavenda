@@ -139,4 +139,6 @@ public class ProdutoController {
         ProdutoDTO produtoCriado = criarProdutoUseCase.execute(produtoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
     }
+
+
 }

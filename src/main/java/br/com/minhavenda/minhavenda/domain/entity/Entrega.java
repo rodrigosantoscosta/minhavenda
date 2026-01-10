@@ -1,5 +1,6 @@
 package br.com.minhavenda.minhavenda.domain.entity;
 
+import br.com.minhavenda.minhavenda.domain.enums.StatusPedido;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,7 +45,7 @@ public class Entrega {
 
     // Factory method
     public static Entrega criar(Pedido pedido, String enderecoEntrega) {
-        if (!pedido.isPago()) {
+        if (!pedido.getStatus().equals(StatusPedido.PAGO)) {
             throw new IllegalStateException("Apenas pedidos pagos podem ter entrega criada");
         }
         if (enderecoEntrega == null || enderecoEntrega.trim().isEmpty()) {

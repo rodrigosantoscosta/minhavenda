@@ -1,24 +1,31 @@
 package br.com.minhavenda.minhavenda.domain.entity;
 
-import br.com.minhavenda.minhavenda.domain.valueobject.Money;
+import br.com.minhavenda.minhavenda.domain.enums.StatusPedido;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entidade Pedido - Representa um pedido finalizado.
+ *
+ * Aggregate Root que gerencia seus ItemPedido.
+ * Criado quando o usuário finaliza o checkout.
+ */
 @Entity
 @Table(name = "pedidos", indexes = {
-    @Index(name = "idx_pedido_usuario", columnList = "usuario_id"),
-    @Index(name = "idx_pedido_status", columnList = "status"),
-    @Index(name = "idx_pedido_data_criacao", columnList = "data_criacao")
+        @Index(name = "idx_pedido_usuario", columnList = "usuario_id"),
+        @Index(name = "idx_pedido_status", columnList = "status"),
+        @Index(name = "idx_pedido_data", columnList = "data_criacao")
 })
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -32,158 +39,120 @@ public class Pedido {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    @Builder.Default
-    private Status status = Status.CREATED;
-
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "valor", column = @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)),
-        @AttributeOverride(name = "moeda", column = @Column(name = "moeda_total", length = 3))
-    })
-    private Money valorTotal;
-
-    @CreationTimestamp
-    @Column(name = "data_criacao", nullable = false, updatable = false)
-    private Instant dataCriacao;
-
-    @UpdateTimestamp
-    @Column(name = "data_atualizacao")
-    private Instant dataAtualizacao;
-
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ItemPedido> itens = new ArrayList<>();
 
-    // Métodos de negócio (Aggregate Root)
-    public void adicionarItem(Produto produto, Integer quantidade) {
-        validarProdutoAtivo(produto);
-        validarQuantidade(quantidade);
-        validarPedidoEditavel();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private StatusPedido status = StatusPedido.CRIADO;
 
-        ItemPedido item = ItemPedido.builder()
-            .pedido(this)
-            .produto(produto)
-            .quantidade(quantidade)
-            .precoUnitario(produto.getPreco())
-            .build();
+    @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
 
+    @Column(name = "valor_frete", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal valorFrete = BigDecimal.ZERO;
+
+    @Column(name = "valor_desconto", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal valorDesconto = BigDecimal.ZERO;
+
+    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorTotal;
+
+    @Column(name = "endereco_entrega", nullable = false, length = 500)
+    private String enderecoEntrega;
+
+    @Column(name = "observacoes", length = 1000)
+    private String observacoes;
+
+    @Column(name = "data_criacao", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime dataCriacao;
+
+    @Column(name = "data_atualizacao", nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime dataAtualizacao;
+
+    @Column(name = "data_pagamento")
+    private LocalDateTime dataPagamento;
+
+    @Column(name = "data_envio")
+    private LocalDateTime dataEnvio;
+
+    @Column(name = "data_entrega")
+    private LocalDateTime dataEntrega;
+
+    // ========== MÉTODOS DE NEGÓCIO ==========
+
+    public void adicionarItem(ItemPedido item) {
         this.itens.add(item);
-        recalcularValorTotal();
+        item.setPedido(this);
     }
 
-    public void removerItem(ItemPedido item) {
-        validarPedidoEditavel();
-        this.itens.remove(item);
-        recalcularValorTotal();
+    public void calcularValorTotal() {
+        // Calcular subtotal de cada item (antes de persistir, subtotal pode ser null)
+        this.subtotal = itens.stream()
+                .map(item -> {
+                    // Se subtotal ainda não foi calculado, calcular agora
+                    BigDecimal itemSubtotal = item.getSubtotal();
+                    if (itemSubtotal == null && item.getQuantidade() != null && item.getPrecoUnitario() != null) {
+                        itemSubtotal = item.getPrecoUnitario()
+                                .multiply(BigDecimal.valueOf(item.getQuantidade()));
+                    }
+                    return itemSubtotal != null ? itemSubtotal : BigDecimal.ZERO;
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.valorTotal = subtotal
+                .add(valorFrete)
+                .subtract(valorDesconto);
     }
 
-    public void atualizarQuantidadeItem(ItemPedido item, Integer novaQuantidade) {
-        validarPedidoEditavel();
-        validarQuantidade(novaQuantidade);
-        
-        if (!this.itens.contains(item)) {
-            throw new IllegalArgumentException("Item não pertence a este pedido");
+    public void marcarComoPago() {
+        if (!status.podePagar()) {
+            throw new IllegalStateException(
+                    String.format("Pedido com status %s não pode ser pago", status)
+            );
         }
-        
-        item.atualizarQuantidade(novaQuantidade);
-        recalcularValorTotal();
-    }
-
-    public void limparItens() {
-        validarPedidoEditavel();
-        this.itens.clear();
-        this.valorTotal = Money.zero();
-    }
-
-    private void recalcularValorTotal() {
-        this.valorTotal = this.itens.stream()
-            .map(ItemPedido::calcularSubtotal)
-            .reduce(Money.zero(), Money::somar);
-    }
-
-    public void confirmarPagamento() {
-        if (this.status != Status.CREATED) {
-            throw new IllegalStateException("Apenas pedidos criados podem ter pagamento confirmado");
-        }
-        if (this.itens.isEmpty()) {
-            throw new IllegalStateException("Pedido sem itens não pode ser pago");
-        }
-        this.status = Status.PAID;
-    }
-
-    public void cancelar() {
-        if (this.status == Status.CANCELED) {
-            throw new IllegalStateException("Pedido já está cancelado");
-        }
-        if (this.status == Status.SHIPPED) {
-            throw new IllegalStateException("Pedido já enviado não pode ser cancelado");
-        }
-        this.status = Status.CANCELED;
+        this.status = StatusPedido.PAGO;
+        this.dataPagamento = LocalDateTime.now();
     }
 
     public void marcarComoEnviado() {
-        if (this.status != Status.PAID) {
-            throw new IllegalStateException("Apenas pedidos pagos podem ser enviados");
+        if (!status.podeEnviar()) {
+            throw new IllegalStateException(
+                    String.format("Pedido com status %s não pode ser enviado", status)
+            );
         }
-        this.status = Status.SHIPPED;
+        this.status = StatusPedido.ENVIADO;
+        this.dataEnvio = LocalDateTime.now();
     }
 
-    // Validações
-    private void validarPedidoEditavel() {
-        if (this.status != Status.CREATED) {
-            throw new IllegalStateException("Pedido não pode ser editado no status: " + this.status);
+    public void marcarComoEntregue() {
+        if (status != StatusPedido.ENVIADO) {
+            throw new IllegalStateException(
+                    String.format("Pedido com status %s não pode ser marcado como entregue", status)
+            );
         }
+        this.status = StatusPedido.ENTREGUE;
+        this.dataEntrega = LocalDateTime.now();
     }
 
-    private void validarProdutoAtivo(Produto produto) {
-        if (!produto.getAtivo()) {
-            throw new IllegalArgumentException("Produto inativo não pode ser adicionado ao pedido");
+    public void cancelar() {
+        if (!status.podeCancelar()) {
+            throw new IllegalStateException(
+                    String.format("Pedido com status %s não pode ser cancelado", status)
+            );
         }
+        this.status = StatusPedido.CANCELADO;
     }
 
-    private void validarQuantidade(Integer quantidade) {
-        if (quantidade == null || quantidade <= 0) {
-            throw new IllegalArgumentException("Quantidade deve ser maior que zero");
-        }
-    }
-
-    // Queries
-    public List<ItemPedido> getItens() {
-        return Collections.unmodifiableList(itens);
-    }
-
-    public int getQuantidadeTotalItens() {
+    public Integer getQuantidadeTotal() {
         return itens.stream()
-            .mapToInt(ItemPedido::getQuantidade)
-            .sum();
-    }
-
-    public boolean temItens() {
-        return !itens.isEmpty();
-    }
-
-    public boolean isPago() {
-        return this.status == Status.PAID;
-    }
-
-    public boolean isCancelado() {
-        return this.status == Status.CANCELED;
-    }
-
-    public boolean isEnviado() {
-        return this.status == Status.SHIPPED;
-    }
-
-    public boolean podeSerCancelado() {
-        return this.status != Status.CANCELED && this.status != Status.SHIPPED;
-    }
-
-    public enum Status {
-        CREATED,
-        PAID,
-        CANCELED,
-        SHIPPED
+                .mapToInt(ItemPedido::getQuantidade)
+                .sum();
     }
 }
