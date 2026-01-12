@@ -24,7 +24,7 @@ public class ExcluirCategoriaUseCase {
         }
 
         // Verificar se há produtos vinculados
-        if (produtoRepository.existsByCategoriaId(id)) {
+        if (produtoRepository.countByCategoria(id) > 0) {
             throw new RuntimeException("Não é possível excluir categoria com produtos vinculados");
         }
 
