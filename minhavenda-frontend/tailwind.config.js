@@ -20,6 +20,21 @@ export default {
           900: '#1e3a8a',
         },
       },
+
+      keyframes: {
+        slideIn: {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        pulse: {
+          '0%, 100%': { opacity: '1' },
+	          '50%': { opacity: '0.5' },
+        },
+      },
+      animation: {
+        slideIn: 'slideIn 0.3s ease-out',
+        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
     },
   },
   plugins: [],
