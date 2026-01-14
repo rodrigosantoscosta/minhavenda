@@ -1,9 +1,10 @@
-package br.com.minhavenda.minhavenda.config;
+package br.com.minhavenda.minhavenda.infrastructure.config;
 
 import br.com.minhavenda.minhavenda.infrastructure.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,35 +12,24 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 /**
- * Configuração de Segurança da aplicação.
- *
- * Responsabilidades:
- * - Configurar autenticação JWT
- * - Definir endpoints públicos e protegidos
- * - Configurar CORS
- * - Configurar BCrypt para hash de senhas
- *
- * ENDPOINTS PÚBLICOS (não precisam autenticação):
- * - /api/auth/** - Login e Register
- * - /swagger-ui/** - Documentação Swagger
- * - /v3/api-docs/** - OpenAPI
- * - /h2-console/** - Console H2 (apenas DEV)
- *
- * ENDPOINTS PROTEGIDOS (precisam token JWT):
- * - Todos os outros (produtos, categorias, pedidos, etc)
+ * Configuração de segurança com CORS integrado.
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity  // Permite usar @PreAuthorize, @Secured nos controllers
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -47,102 +37,102 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
 
     /**
-     * Configuração principal de segurança.
-     *
-     * Define:
-     * - Quais endpoints são públicos
-     * - Quais endpoints precisam autenticação
-     * - Como validar tokens JWT
-     * - Política de sessão (stateless)
+     * Configuração de CORS integrada ao Spring Security.
      */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Origens permitidas
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173"
+                // PRODUÇÃO: Adicione domínio real aqui
+        ));
+
+        // Métodos permitidos
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
+
+        // Headers permitidos
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Headers expostos
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization", "Content-Disposition"
+        ));
+
+        // Permitir credenciais
+        configuration.setAllowCredentials(true);
+
+        // Cache
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Desabilita CSRF
-                // CSRF não é necessário para APIs REST stateless (usa JWT)
-                .csrf(AbstractHttpConfigurer::disable)
+                // ✅ HABILITAR CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // 2. Configuração de autorização
+                // CSRF desabilitado (API REST stateless)
+                .csrf(csrf -> csrf.disable())
+
+                // Autorização de requisições
                 .authorizeHttpRequests(auth -> auth
-                        // ENDPOINTS PÚBLICOS (não precisam autenticação)
-                        .requestMatchers(
-                                "/auth/**",
-                                "/swagger-ui/**",         // Swagger UI
-                                "/v3/api-docs/**",        // OpenAPI docs
-                                "/swagger-ui.html",       // Swagger HTML
-                                "/swagger-resources/**",  // Swagger resources
-                                "/webjars/**",            // Swagger webjars
-                                "/h2-console/**",          // H2 Console (DEV)
-                                "/produtos/**",
-                                "/categorias/**"
+                        // PÚBLICAS (sem autenticação)
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categorias/**").permitAll()
 
-                        ).permitAll()
+                        // ADMIN
+                        .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
 
-                        // TODOS os outros endpoints precisam autenticação
+                        // AUTENTICADAS (qualquer usuário logado)
+                        .requestMatchers("/carrinho/**").authenticated()
+                        .requestMatchers("/pedidos/**").authenticated()
+
+                        // Todas outras requisições precisam autenticação
                         .anyRequest().authenticated()
                 )
 
-                // 3. Configura sessão como STATELESS
-                // Não usa sessão no servidor (JWT é stateless)
-                // Cada request carrega o token JWT
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                // Sessão stateless (JWT)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // 4. Configura provider de autenticação
-                // Define como validar usuário e senha
+                // Provider de autenticação
                 .authenticationProvider(authenticationProvider())
 
-                // 5. Adiciona filtro JWT ANTES do filtro padrão
-                // Intercepta todas requests e valida token JWT
+                // Filtro JWT
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Provider de autenticação.
-     *
-     * Responsável por:
-     * - Carregar usuário do banco (via UserDetailsService)
-     * - Validar senha com BCrypt (via PasswordEncoder)
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
-        // Define como carregar usuário do banco
         authProvider.setUserDetailsService(userDetailsService);
-
-        // Define como validar senha (BCrypt)
         authProvider.setPasswordEncoder(passwordEncoder());
-
         return authProvider;
     }
 
-    /**
-     * AuthenticationManager - responsável por autenticar usuários.
-     *
-     * Usado no login para validar credenciais (email + senha).
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * PasswordEncoder - BCrypt para hash de senhas.
-     *
-     * BCrypt:
-     * - Gera hash único para cada senha (mesmo senhas iguais têm hashs diferentes)
-     * - Adiciona "salt" automático (previne rainbow table attacks)
-     * - Lento propositalmente (dificulta brute force)
-     * - Strength 10 (padrão) = bom equilíbrio segurança/performance
-     *
-     * Exemplo:
-     * - Senha: "senha123"
-     * - Hash: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -1,0 +1,27 @@
+import api from './api'
+
+const productService = {
+  // Listar produtos ativos
+  async getProducts(page = 0, size = 20) {
+    const response = await api.get('/produtos/paginado', {
+      params: { page, size },
+    })
+    return response.data
+  },
+
+  // Buscar produto por ID
+  async getProductById(id) {
+    const response = await api.get(`/produtos/${id}`)
+    return response.data
+  },
+
+  // Buscar produtos com filtros
+  async searchProducts(filters) {
+    const response = await api.get('/produtos/buscar', {
+      params: filters,
+    })
+    return response.data
+  },
+}
+
+export default productService
