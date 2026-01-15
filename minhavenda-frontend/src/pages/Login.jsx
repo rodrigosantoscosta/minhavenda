@@ -6,6 +6,12 @@ import Button from '../components/common/Button'
 import { FiMail, FiLock } from 'react-icons/fi'
 import authService from '../services/authService'
 
+/**
+ * Página de login
+ * 
+ * @returns {JSX.Element} - Componente React que representa a página de login
+ */
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
@@ -34,7 +40,7 @@ export default function Login() {
       // Salvar dados do usuário no localStorage
       localStorage.setItem('user', JSON.stringify(response.user))
       
-      // Simulando login
+      // Redirecionar para login
       setTimeout(() => {
         setLoading(false)
         toast.success('Login realizado com sucesso!')

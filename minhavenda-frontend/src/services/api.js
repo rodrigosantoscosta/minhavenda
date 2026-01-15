@@ -28,20 +28,137 @@ api.interceptors.request.use(
   }
 )
 
-// Interceptor para tratar erros de resposta
+/// 4. Interceptor de RESPOSTA (tratar erros globalmente)
 api.interceptors.response.use(
   (response) => {
+    // Log para debug (remover em produção)
+    console.log(' Resposta:', {
+      status: response.status,
+      url: response.config.url,
+      data: response.data,
+    })
+    
     return response
   },
   (error) => {
-    // Se erro 401 (não autorizado), redirecionar para login
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
+    // Pegar informações do erro
+    const status = error.response?.status
+    const message = error.response?.data?.message || error.message
+    const url = error.config?.url
+    
+    console.error(' Erro na resposta:', {
+      status,
+      message,
+      url,
+    })
+    
+    // Tratamento de erros específicos
+    switch (status) {
+      case 401:
+        // Não autorizado - Token inválido/expirado
+        console.warn(' Token inválido ou expirado')
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        
+        // Redirecionar para login (apenas se não estiver na página de login)
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        break
+        
+      case 403:
+        // Proibido - Sem permissão
+        console.warn(' Sem permissão para acessar este recurso')
+        break
+        
+      case 404:
+        // Não encontrado
+        console.warn(' Recurso não encontrado:', url)
+        break
+        
+      case 500:
+        // Erro interno do servidor
+        console.error(' Erro interno do servidor')
+        break
+        
+      case 503:
+        // Serviço indisponível
+        console.error(' Serviço temporariamente indisponível')
+        break
+        
+      default:
+        // Outros erros
+        if (!error.response) {
+          // Erro de rede (sem resposta do servidor)
+          console.error(' Erro de rede - Servidor inacessível')
+        }
     }
     
     return Promise.reject(error)
   }
 )
 
+// 5. Funções auxiliares para chamadas comuns
+
+/**
+ * GET - Buscar dados
+ */
+export const get = async (url, config = {}) => {
+  try {
+    const response = await api.get(url, config)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * POST - Criar dados
+ */
+export const post = async (url, data = {}, config = {}) => {
+  try {
+    const response = await api.post(url, data, config)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * PUT - Atualizar dados completos
+ */
+export const put = async (url, data = {}, config = {}) => {
+  try {
+    const response = await api.put(url, data, config)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * PATCH - Atualizar dados parciais
+ */
+export const patch = async (url, data = {}, config = {}) => {
+  try {
+    const response = await api.patch(url, data, config)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * DELETE - Deletar dados
+ */
+export const del = async (url, config = {}) => {
+  try {
+    const response = await api.delete(url, config)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
+// 6. Exportar instância e funções
 export default api
