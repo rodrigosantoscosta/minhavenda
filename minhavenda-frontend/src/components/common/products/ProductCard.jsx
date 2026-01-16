@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useCart } from '../../contexts/CartContext'
-import Button from '../common/Button'
-import Badge from '../common/Badge'
+import { useCart } from '../../../contexts/CartContext'
+import Button from '../Button'
+import Badge from '../Badge'
 import { 
   FiShoppingCart, 
   FiHeart, 

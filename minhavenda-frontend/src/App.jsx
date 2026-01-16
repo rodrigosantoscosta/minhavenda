@@ -12,7 +12,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Products from './pages/Products'
-// import ProductDetail from './pages/ProductDetail' // DIA 5
+import ProductDetail from './pages/ProductDetail'
 import NotFound from './pages/NotFound'
 
 // ========== PÁGINAS DE TESTE ==========
@@ -55,8 +55,9 @@ function App() {
                   {/* Produtos - Listagem com Filtros */}
                   <Route path="/produtos" element={<Products />} />
                   
-                  {/* Detalhes do Produto - DIA 5 */}
-                  {/* <Route path="/produto/:id" element={<ProductDetail />} /> */}
+                  {/* Detalhes do Produto */}
+                  <Route path="/produtos" element={<Products />} />
+                  <Route path="/produto/:id" element={<ProductDetail />} />
                   
                   {/* ========================================
                       ROTAS DE AUTENTICAÇÃO

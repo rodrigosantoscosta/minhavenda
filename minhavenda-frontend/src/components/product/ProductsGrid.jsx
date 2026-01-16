@@ -1,4 +1,4 @@
-import ProductCard from './ProductCard'
+import ProductCard from '../common/products/ProductCard'
 import ProductCardSkeleton from './ProductCardSkeleton'
 
 export default function ProductsGrid({ 
