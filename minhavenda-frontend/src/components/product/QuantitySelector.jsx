@@ -1,4 +1,3 @@
-// src/components/product/QuantitySelector.jsx - SELETOR DE QUANTIDADE
 import { FiMinus, FiPlus } from 'react-icons/fi'
 
 export default function QuantitySelector({ 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../contexts/CartContext'
@@ -94,8 +95,8 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!produto) return
     
-    if (quantidade > produto.estoque) {
-      toast.error(`Apenas ${produto.estoque} unidades disponíveis`)
+    if (quantidade > produto.quantidadeEstoque) {
+      toast.error(`Apenas ${produto.quantidadeEstoque} unidades disponíveis`)
       return
     }
 
@@ -109,9 +110,9 @@ export default function ProductDetail() {
   }
 
   const handleQuantityChange = (novaQuantidade) => {
-    if (novaQuantidade > produto.estoque) {
-      toast.warning(`Apenas ${produto.estoque} unidades disponíveis`)
-      setQuantidade(produto.estoque)
+    if (novaQuantidade > produto.quantidadeEstoque) {
+      toast.warning(`Apenas ${produto.quantidadeEstoque} unidades disponíveis`)
+      setQuantidade(produto.quantidadeEstoque)
       return
     }
     setQuantidade(novaQuantidade)
@@ -158,14 +159,14 @@ export default function ProductDetail() {
     : 0
   
   const precoFinal = produto.precoPromocional || produto.preco.valor
-  const temEstoque = produto.estoque > 0
-  const estoqueMinimo = produto.estoque <= 5 && produto.estoque > 0
+  const temEstoque = produto.quantidadeEstoque > 0
+  const estoqueMinimo = produto.quantidadeEstoque <= 5 && produto.quantidadeEstoque > 0
 
   // Breadcrumb
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
     { label: 'Produtos', path: '/produtos' },
-    { label: produto.categoria?.nome || 'Categoria', path: `/produtos?categoriaId=${produto.categoria?.id}` },
+    { label: produto.categoriaNome || 'Categoria', path: `/produtos?categoriaId=${produto.categoria?.id}` },
     { label: produto.nome, path: '#' }
   ]
 
@@ -271,11 +272,11 @@ export default function ProductDetail() {
                 <Badge variant="danger">Produto Esgotado</Badge>
               ) : estoqueMinimo ? (
                 <div className="flex items-center gap-2">
-                  <Badge variant="warning">Últimas {produto.estoque} unidades!</Badge>
+                  <Badge variant="warning">Últimas {produto.quantidadeEstoque} unidades!</Badge>
                 </div>
               ) : (
                 <p className="text-sm text-green-600 font-medium">
-                  ✓ Em estoque ({produto.estoque} disponíveis)
+                  ✓ Em estoque ({produto.quantidadeEstoque} disponíveis)
                 </p>
               )}
             </div>
@@ -290,7 +291,7 @@ export default function ProductDetail() {
                   value={quantidade}
                   onChange={handleQuantityChange}
                   min={1}
-                  max={produto.estoque}
+                  max={produto.quantidadeEstoque}
                 />
               </div>
             )}

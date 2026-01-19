@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { CartProvider } from './contexts/CartContext'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
+import Cart from './pages/Cart'
 import { ProtectedRoute, PublicRoute, AdminRoute } from './components/common/ProtectedRoute'
 
 // ========== PÁGINAS PÚBLICAS ==========
@@ -58,6 +59,8 @@ function App() {
                   {/* Detalhes do Produto */}
                   <Route path="/produtos" element={<Products />} />
                   <Route path="/produto/:id" element={<ProductDetail />} />
+
+                  <Route path="/carrinho" element={<Cart />} />
                   
                   {/* ========================================
                       ROTAS DE AUTENTICAÇÃO

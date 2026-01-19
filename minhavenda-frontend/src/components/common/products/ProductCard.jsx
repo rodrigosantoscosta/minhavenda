@@ -90,7 +90,7 @@ export default function ProductCard({ produto, viewMode = 'grid' }) {
 
       <div className="p-4">
         <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">
-          {produto.categoria?.nome || 'Sem categoria'}
+          {produto.categoria || 'Sem categoria'}
         </p>
 
         <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem]">

@@ -1,4 +1,3 @@
-// src/pages/Home.jsx - COM DEBUG E TRATAMENTO CORRETO
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../contexts/CartContext'
@@ -12,6 +11,8 @@ import Pagination from '../components/common/Pagination'
 import Loading from '../components/common/Loading'
 import EmptyState from '../components/common/EmptyState'
 import Button from '../components/common/Button'
+
+
 import { 
   FiShoppingBag, 
   FiPackage
