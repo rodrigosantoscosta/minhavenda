@@ -47,6 +47,7 @@ out/
 .settings/
 .classpath
 .project
+*.code-workspace
 
 # === ECLIPSE ===
 .metadata

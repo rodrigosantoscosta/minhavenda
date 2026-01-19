@@ -36,8 +36,8 @@ export default function ProductCard({ produto, viewMode = 'grid' }) {
 
   const desconto = calcularDesconto()
   const precoFinal = produto.precoPromocional || produto.preco.valor
-  const temEstoque = produto.estoque > 0
-  const estoqueMinimo = produto.estoque <= 5 && produto.estoque > 0
+  const temEstoque = produto.quantidadeEstoque > 0
+  const estoqueMinimo = produto.quantidadeEstoque <= 5 && produto.quantidadeEstoque > 0
 
   return (
     <Link 
@@ -90,7 +90,7 @@ export default function ProductCard({ produto, viewMode = 'grid' }) {
 
       <div className="p-4">
         <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">
-          {produto.categoria || 'Sem categoria'}
+          {produto.categoriaNome || 'Sem categoria'}
         </p>
 
         <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem]">
@@ -132,7 +132,7 @@ export default function ProductCard({ produto, viewMode = 'grid' }) {
 
         {estoqueMinimo && (
           <p className="text-xs text-orange-600 mb-3 font-medium">
-            ⚠️ Últimas {produto.estoque} unidades!
+            ⚠️ Últimas {produto.quantidadeEstoque} unidades!
           </p>
         )}
 

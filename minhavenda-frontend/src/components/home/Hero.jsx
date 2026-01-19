@@ -30,7 +30,7 @@ export default function Hero() {
               Milhares de produtos em diversas categorias. Entrega rápida e segura para todo o Brasil.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            {/* <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/produtos">
                 <Button variant="white" size="lg" className="shadow-lg">
                   <FiShoppingBag className="mr-2" />
@@ -43,7 +43,7 @@ export default function Hero() {
                   Ver Ofertas
                 </Button>
               </Link>
-            </div>
+            </div> */}
 
             {/* Features */}
             <div className="grid grid-cols-3 gap-4 mt-12">
@@ -73,7 +73,7 @@ export default function Hero() {
               
               {/* Imagem placeholder - substituir por imagem real */}
               <img
-                src="https://via.placeholder.com/600x600?text=Shopping+Illustration"
+                src="https://placehold.net/5-600x600.png"
                 alt="Shopping"
                 className="relative z-10 w-full h-auto drop-shadow-2xl"
               />

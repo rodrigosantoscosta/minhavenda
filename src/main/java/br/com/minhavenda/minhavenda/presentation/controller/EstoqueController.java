@@ -1,6 +1,7 @@
 package br.com.minhavenda.minhavenda.presentation.controller;
 
 
+import br.com.minhavenda.minhavenda.application.usecase.estoque.AdicionarEstoqueRequest;
 import br.com.minhavenda.minhavenda.application.usecase.estoque.AdicionarEstoqueUseCase;
 import br.com.minhavenda.minhavenda.application.usecase.estoque.ConsultarEstoqueUseCase;
 import br.com.minhavenda.minhavenda.application.usecase.estoque.RemoverEstoqueUseCase;
@@ -74,17 +75,17 @@ public class EstoqueController {
      * Ajustar estoque (definir quantidade exata)
      * PUT /estoque/produto/{produtoId}/ajustar
      */
-    @PutMapping("/produto/{produtoId}/ajustar")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MensagemResponse> ajustarEstoque(
-            @PathVariable UUID produtoId,
-            @Valid @RequestBody AdicionarEstoqueRequest request
-    ) {
-        ajustarEstoqueUseCase.executar(produtoId, request.getQuantidade(), request.getMotivo());
-        return ResponseEntity.ok(
-                new MensagemResponse("Estoque ajustado com sucesso")
-        );
-    }
+//    @PutMapping("/produto/{produtoId}/ajustar")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<MensagemResponse> ajustarEstoque(
+//            @PathVariable UUID produtoId,
+//            @Valid @RequestBody AdicionarEstoqueRequest request
+//    ) {
+//        ajustarEstoqueUseCase.executar(produtoId, request.getQuantidade(), request.getMotivo());
+//        return ResponseEntity.ok(
+//                new MensagemResponse("Estoque ajustado com sucesso")
+//        );
+//    }
 
     // Records para respostas
     record MensagemResponse(String mensagem) {}

@@ -38,7 +38,7 @@ function ProductPage() {
           <div>
             <div className="flex gap-2 mb-4">
               {product.novo && <Badge variant="success">Novo</Badge>}
-              <StockBadge quantity={product.estoque} />
+              <StockBadge quantity={product.quantidadeEstoque} />
             </div>
 
             <h1 className="text-3xl font-bold mb-4">{product.nome}</h1>

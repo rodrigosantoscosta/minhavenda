@@ -1,6 +1,7 @@
 package br.com.minhavenda.minhavenda.application.mapper;
 
 import br.com.minhavenda.minhavenda.application.dto.ProdutoDTO;
+import br.com.minhavenda.minhavenda.domain.entity.Estoque;
 import br.com.minhavenda.minhavenda.domain.entity.Produto;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ public class ProdutoMapper {
                 .dataCadastro(produto.getDataCadastro())
                 .categoriaId(produto.getCategoria() != null ? produto.getCategoria().getId() : null)
                 .categoriaNome(produto.getCategoria() != null ? produto.getCategoria().getNome() : null)
+                .quantidadeEstoque(obterQuantidadeEstoque(produto))
                 .build();
     }
 
@@ -45,5 +47,20 @@ public class ProdutoMapper {
                 .preco(dto.getPreco())
                 .ativo(dto.getAtivo())
                 .build();
+    }
+
+    private Integer obterQuantidadeEstoque(Produto produto) {
+        if (produto == null) {
+            return 0;
+        }
+
+        Estoque estoque = produto.getEstoque();
+
+        if (estoque == null) {
+            return 0;
+        }
+
+        Integer quantidade = estoque.getQuantidade();
+        return quantidade != null ? quantidade : 0;
     }
 }

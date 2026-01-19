@@ -49,7 +49,7 @@ public class AdicionarEstoqueUseCase {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + produtoId));
 
         // Obter estoque atual (tratar null como 0)
-        Integer estoqueAtual = produto.getEstoque().getQuantidade() != null ? produto.getEstoque().getQuantidade() : 0;
+        Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque().getQuantidade() : 0;
 
         // Adicionar quantidade
         Integer novoEstoque = estoqueAtual + quantidade;

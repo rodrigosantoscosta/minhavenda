@@ -56,7 +56,7 @@ export function CartProvider({ children }) {
         const novaQuantidade = updatedItems[existingItemIndex].quantidade + quantidade
 
         // Verificar estoque
-        if (novaQuantidade > produto.estoque) {
+        if (novaQuantidade > produto.quantidadeEstoque) {
           toast.warning('Quantidade solicitada maior que o estoque disponível')
           return
         }
@@ -66,7 +66,7 @@ export function CartProvider({ children }) {
         toast.success('Quantidade atualizada no carrinho')
       } else {
         // Produto novo, adicionar
-        if (quantidade > produto.estoque) {
+        if (quantidade > produto.quantidadeEstoque) {
           toast.warning('Quantidade solicitada maior que o estoque disponível')
           return
         }
@@ -77,9 +77,9 @@ export function CartProvider({ children }) {
           preco: produto.precoPromocional || produto.preco.valor,
           precoOriginal: produto.preco.valor,
           quantidade: quantidade,
-          estoque: produto.estoque,
+          estoque: produto.quantidadeEstoque,
           imagem: produto.imagem,
-          categoria: produto.categoria?.nome || 'Sem categoria',
+          categoria: produto.categoriaNome || 'Sem categoria',
         }
 
         setItems([...items, newItem])
@@ -120,7 +120,7 @@ export function CartProvider({ children }) {
       const updatedItems = items.map(item => {
         if (item.id === produtoId) {
           // Verificar estoque
-          if (novaQuantidade > item.estoque) {
+          if (novaQuantidade > item.quantidadeEstoque) {
             toast.warning('Quantidade maior que o estoque disponível')
             return item
           }

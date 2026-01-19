@@ -33,6 +33,6 @@ public class ConsultarEstoqueUseCase {
         Produto produto = produtoRepository.findById(produtoId)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + produtoId));
 
-        return produto.getEstoque().getQuantidade() != null ? produto.getEstoque().getQuantidade() : 0;
+        return produto.getEstoque() != null ? produto.getEstoque().getQuantidade() : 0;
     }
 }

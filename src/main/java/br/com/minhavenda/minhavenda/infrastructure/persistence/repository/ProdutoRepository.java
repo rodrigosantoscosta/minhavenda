@@ -21,7 +21,8 @@ import java.util.UUID;
  */
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, UUID>, JpaSpecificationExecutor<Produto> {
-    Produto findById();
+
+
     /**
      * Busca apenas produtos ativos.
      */

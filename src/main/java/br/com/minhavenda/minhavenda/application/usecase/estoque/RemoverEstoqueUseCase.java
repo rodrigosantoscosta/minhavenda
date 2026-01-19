@@ -49,7 +49,7 @@ public class RemoverEstoqueUseCase {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + produtoId));
 
         // Obter estoque atual
-        Integer estoqueAtual = produto.getEstoque().getQuantidade() != null ? produto.getEstoque().getQuantidade() : 0;
+        Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque().getQuantidade() : 0;
 
         // Validar estoque suficiente
         if (estoqueAtual < quantidade) {
