@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
 import { useToast } from '../components/common/Toast'
 import storageUtil from '../utils/storageUtil'
+import api from '../services/api'
 
 // 1. Criar o Context
 const CartContext = createContext(null)
@@ -10,37 +12,123 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { user, isAuthenticated } = useAuth()
 
-  // 3. Carregar carrinho do localStorage ao iniciar
+  // 3. Carregar carrinho ao iniciar e quando auth mudar
   useEffect(() => {
     loadCart()
-  }, [])
+  }, [isAuthenticated, user])
 
-  // 4. Salvar carrinho no localStorage quando mudar
+  // 4. Salvar carrinho quando items mudar
   useEffect(() => {
     if (items.length > 0) {
       saveCart()
+    } else if (items.length === 0) {
+      // Se carrinho vazio, limpar storage
+      storageUtil.removeItem('cart')
     }
   }, [items])
 
-  // Carregar do localStorage
-  const loadCart = () => {
+  // Carregar carrinho (localStorage ou backend)
+  const loadCart = async () => {
     try {
-      const savedCart = storageUtil.getItem('cart')
-      if (savedCart) {
-        setItems(savedCart)
+      if (isAuthenticated && user) {
+        // Se autenticado, tentar carregar do backend
+        await loadCartFromBackend()
+      } else {
+        // Se não autenticado, carregar do localStorage
+        loadCartFromLocalStorage()
       }
     } catch (error) {
       console.error('Erro ao carregar carrinho:', error)
+      // Fallback para localStorage
+      loadCartFromLocalStorage()
     }
   }
 
-  // Salvar no localStorage
-  const saveCart = () => {
+  // Carregar do localStorage
+  const loadCartFromLocalStorage = () => {
     try {
+      const savedCart = storageUtil.getItem('cart')
+      if (savedCart && Array.isArray(savedCart)) {
+        setItems(savedCart)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar carrinho do localStorage:', error)
+    }
+  }
+
+  // Carregar do backend (quando logado)
+  const loadCartFromBackend = async () => {
+    try {
+      setLoading(true)
+      
+      // TODO: Endpoint GET /api/carrinho
+      // const response = await api.get('/carrinho')
+      // const backendItems = response.data.items || []
+      
+      // Por enquanto, mesclar localStorage com backend
+      const localItems = storageUtil.getItem('cart') || []
+      
+      // Se tiver items locais, sincronizar com backend
+      if (localItems.length > 0) {
+        await syncCartWithBackend(localItems)
+      }
+      
+      // Carregar items do backend
+      // setItems(backendItems)
+      
+      // Temporário: usar localStorage até backend estar pronto
+      setItems(localItems)
+      
+    } catch (error) {
+      console.error('Erro ao carregar carrinho do backend:', error)
+      // Fallback para localStorage
+      loadCartFromLocalStorage()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Sincronizar carrinho local com backend
+  const syncCartWithBackend = async (localItems) => {
+    try {
+      // TODO: Endpoint POST /api/carrinho/sync
+      // await api.post('/carrinho/sync', { items: localItems })
+      
+      console.log('Sincronizando carrinho com backend:', localItems)
+      
+      // Após sincronizar, limpar localStorage
+      // storageUtil.removeItem('cart')
+    } catch (error) {
+      console.error('Erro ao sincronizar carrinho:', error)
+    }
+  }
+
+  // Salvar no localStorage (e backend se autenticado)
+  const saveCart = async () => {
+    try {
+      // Sempre salvar no localStorage (backup)
       storageUtil.setItem('cart', items)
+      
+      // Se autenticado, salvar no backend também
+      if (isAuthenticated && user) {
+        await saveCartToBackend()
+      }
     } catch (error) {
       console.error('Erro ao salvar carrinho:', error)
+    }
+  }
+
+  // Salvar no backend
+  const saveCartToBackend = async () => {
+    try {
+      // TODO: Endpoint PUT /api/carrinho
+      // await api.put('/carrinho', { items })
+      
+      console.log('Salvando carrinho no backend:', items)
+    } catch (error) {
+      console.error('Erro ao salvar carrinho no backend:', error)
     }
   }
 
@@ -79,7 +167,7 @@ export function CartProvider({ children }) {
           quantidade: quantidade,
           estoque: produto.quantidadeEstoque,
           imagem: produto.imagem,
-          categoria: produto.categoriaNome || 'Sem categoria',
+          categoria: produto.categoria?.nome || 'Sem categoria',
         }
 
         setItems([...items, newItem])
@@ -96,12 +184,6 @@ export function CartProvider({ children }) {
     try {
       const updatedItems = items.filter(item => item.id !== produtoId)
       setItems(updatedItems)
-      
-      // Se carrinho ficar vazio, limpar localStorage
-      if (updatedItems.length === 0) {
-        storageUtil.removeItem('cart')
-      }
-      
       toast.info('Item removido do carrinho')
     } catch (error) {
       console.error('Erro ao remover item:', error)
@@ -120,7 +202,7 @@ export function CartProvider({ children }) {
       const updatedItems = items.map(item => {
         if (item.id === produtoId) {
           // Verificar estoque
-          if (novaQuantidade > item.quantidadeEstoque) {
+          if (novaQuantidade > item.estoque) {
             toast.warning('Quantidade maior que o estoque disponível')
             return item
           }
@@ -137,10 +219,17 @@ export function CartProvider({ children }) {
   }
 
   // 8. Limpar carrinho completamente
-  const clearCart = () => {
+  const clearCart = async () => {
     try {
       setItems([])
       storageUtil.removeItem('cart')
+      
+      // Se autenticado, limpar no backend também
+      if (isAuthenticated && user) {
+        // TODO: Endpoint DELETE /api/carrinho
+        // await api.delete('/carrinho')
+      }
+      
       toast.info('Carrinho esvaziado')
     } catch (error) {
       console.error('Erro ao limpar carrinho:', error)
@@ -181,7 +270,21 @@ export function CartProvider({ children }) {
     return getSubtotal() + frete
   }
 
-  // 15. Valor que será compartilhado
+  // 15. Transferir carrinho após login
+  const transferLocalCartToBackend = async () => {
+    try {
+      const localItems = storageUtil.getItem('cart')
+      
+      if (localItems && localItems.length > 0) {
+        console.log('Transferindo carrinho local para usuário autenticado')
+        await syncCartWithBackend(localItems)
+      }
+    } catch (error) {
+      console.error('Erro ao transferir carrinho:', error)
+    }
+  }
+
+  // 16. Valor que será compartilhado
   const value = {
     items,
     loading,
@@ -195,9 +298,10 @@ export function CartProvider({ children }) {
     getSubtotal,
     getTotalDiscount,
     getTotal,
+    transferLocalCartToBackend,
   }
 
-  // 16. Retornar Provider
+  // 17. Retornar Provider
   return (
     <CartContext.Provider value={value}>
       {children}
@@ -205,7 +309,7 @@ export function CartProvider({ children }) {
   )
 }
 
-// 17. Hook customizado
+// 18. Hook customizado
 export function useCart() {
   const context = useContext(CartContext)
   

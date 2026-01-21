@@ -1,21 +1,16 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import authService from '../services/authService'
-import { useToast } from '../components/common/Toast'
 
-// 1. Criar o Context
 const AuthContext = createContext(null)
 
-// 2. Provider Component
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   
   const navigate = useNavigate()
-  const toast = useToast()
 
-  // 3. Carregar usuário ao iniciar (se tiver token salvo)
   useEffect(() => {
     checkAuth()
   }, [])
@@ -28,75 +23,159 @@ export function AuthProvider({ children }) {
       if (token && savedUser) {
         setUser(savedUser)
         setIsAuthenticated(true)
+        console.log('✅ Usuário autenticado:', savedUser)
       }
     } catch (error) {
-      console.error('Erro ao verificar autenticação:', error)
+      console.error('❌ Erro ao verificar autenticação:', error)
       authService.logout()
     } finally {
       setLoading(false)
     }
   }
 
-  // 4. Função de Login
   const login = async (email, senha) => {
     try {
+      console.log('🔄 Tentando login...', { email })
       setLoading(true)
-      const response = await authService.login(email, senha)
       
-      setUser(response.user)
+      const response = await authService.login(email, senha)
+      console.log('📦 Resposta completa do backend:', response)
+      
+      // Extrair user da resposta
+      // Backend pode retornar: { token, user } ou { token, nome, email, ... }
+      let userData = response.user || response
+      
+      console.log('👤 Dados do usuário:', userData)
+      
+      // Se ainda não tiver nome, tentar pegar do próprio response
+      if (!userData.nome && response.nome) {
+        userData = {
+          nome: response.nome,
+          email: response.email,
+          id: response.id,
+          tipo: response.tipo
+        }
+      }
+      
+      // Verificar se tem dados mínimos
+      if (!userData.nome) {
+        console.error('❌ Resposta do backend sem campo "nome":', response)
+        throw new Error('Resposta do servidor inválida')
+      }
+      
+      setUser(userData)
       setIsAuthenticated(true)
       
-      toast.success(`Bem-vindo, ${response.user.nome}!`)
-      navigate('/')
+      alert(`Bem-vindo, ${userData.nome}!`)
+      
+      setTimeout(() => {
+        navigate('/')
+      }, 100)
       
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao fazer login'
-      toast.error(message)
+      console.error('❌ Erro completo no login:', error)
+      
+      let message = 'Erro ao fazer login'
+      
+      if (error.response) {
+        // Erro da API
+        console.log('Response error:', error.response)
+        message = error.response.data?.message || 
+                 error.response.data?.error ||
+                 `Erro ${error.response.status}: ${error.response.statusText}`
+      } else if (error.request) {
+        // Requisição enviada mas sem resposta
+        console.log('Request error:', error.request)
+        message = 'Servidor não respondeu. Verifique se o backend está rodando.'
+      } else {
+        // Erro na configuração da requisição
+        message = error.message
+      }
+      
+      alert(message)
+      
       return { success: false, error: message }
     } finally {
       setLoading(false)
     }
   }
 
-  // 5. Função de Registro
   const register = async (nome, email, senha) => {
     try {
+      console.log('🔄 Tentando registrar...', { nome, email })
       setLoading(true)
-      const response = await authService.register(nome, email, senha)
       
-      setUser(response.user)
+      const response = await authService.register(nome, email, senha)
+      console.log('📦 Resposta completa do backend:', response)
+      
+      // Extrair user da resposta
+      let userData = response.user || response
+      
+      console.log('👤 Dados do usuário:', userData)
+      
+      if (!userData.nome && response.nome) {
+        userData = {
+          nome: response.nome,
+          email: response.email,
+          id: response.id,
+          tipo: response.tipo
+        }
+      }
+      
+      if (!userData.nome) {
+        console.error('❌ Resposta do backend sem campo "nome":', response)
+        throw new Error('Resposta do servidor inválida')
+      }
+      
+      setUser(userData)
       setIsAuthenticated(true)
       
-      toast.success('Conta criada com sucesso!')
-      navigate('/')
+      alert('Conta criada com sucesso!')
+      
+      setTimeout(() => {
+        navigate('/')
+      }, 100)
       
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.message || 'Erro ao criar conta'
-      toast.error(message)
+      console.error('❌ Erro completo no registro:', error)
+      
+      let message = 'Erro ao criar conta'
+      
+      if (error.response) {
+        message = error.response.data?.message || 
+                 error.response.data?.error ||
+                 `Erro ${error.response.status}: ${error.response.statusText}`
+      } else if (error.request) {
+        message = 'Servidor não respondeu.'
+      } else {
+        message = error.message
+      }
+      
+      alert(message)
+      
       return { success: false, error: message }
     } finally {
       setLoading(false)
     }
   }
 
-  // 6. Função de Logout
   const logout = () => {
+    console.log('🔄 Fazendo logout...')
     authService.logout()
     setUser(null)
     setIsAuthenticated(false)
-    toast.info('Você saiu da sua conta')
+    alert('Você saiu da sua conta')
     navigate('/login')
   }
 
-  // 7. Atualizar dados do usuário
   const updateUser = (updatedUser) => {
+    console.log('🔄 Atualizando usuário...', updatedUser)
     setUser(updatedUser)
     authService.updateCurrentUser(updatedUser)
   }
 
-  // 8. Valor que será compartilhado
   const value = {
     user,
     loading,
@@ -108,7 +187,6 @@ export function AuthProvider({ children }) {
     checkAuth,
   }
 
-  // 9. Retornar Provider com valor
   return (
     <AuthContext.Provider value={value}>
       {children}
@@ -116,7 +194,6 @@ export function AuthProvider({ children }) {
   )
 }
 
-// 10. Hook customizado para usar o contexto
 export function useAuth() {
   const context = useContext(AuthContext)
   

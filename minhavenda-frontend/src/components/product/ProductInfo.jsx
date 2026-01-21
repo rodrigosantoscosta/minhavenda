@@ -1,4 +1,3 @@
-// src/components/product/ProductInfo.jsx - TABS DE INFORMAÇÕES DETALHADAS
 import { useState } from 'react'
 
 export default function ProductInfo({ produto }) {

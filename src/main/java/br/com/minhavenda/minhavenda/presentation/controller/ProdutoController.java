@@ -183,6 +183,31 @@ public class ProdutoController {
         return ResponseEntity.ok(listarProdutosUseCase.listarTodos(pageable));
     }
 
+    @GetMapping("/produtos")
+    public ResponseEntity<Page<ProdutoDTO>> listarProdutosPorCategoria(
+            @RequestParam(required = false) Long categoria,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "nome:asc") String sort
+    ) {
+        Pageable pageable = createPageable(page, size, sort);
+
+        // Sem categoria = todos produtos
+        if (categoria == null) {
+            return ResponseEntity.ok(listarProdutosUseCase.executar(pageable));
+        }
+
+        // Com categoria = filtrar
+        FiltroProdutoRequest filtro = FiltroProdutoRequest.builder()
+                .categoriaId(categoria)
+                .ativo(true)
+                .build();
+
+        return ResponseEntity.ok(
+                listarProdutosUseCase.buscarComFiltros(filtro, pageable)
+        );
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Criar novo produto (ADMIN)")

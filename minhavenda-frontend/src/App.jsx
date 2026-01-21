@@ -1,4 +1,3 @@
-// src/App.jsx - ATUALIZADO COM TODAS AS ROTAS DIA 4
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ToastProvider } from './components/common/Toast'
 import { AuthProvider } from './contexts/AuthContext'
@@ -20,15 +19,14 @@ import NotFound from './pages/NotFound'
 import TestApi from './pages/TestApi'
 // import TestComponents from './pages/TestComponents'
 
-// ========== PÁGINAS PROTEGIDAS (Comentadas até criar) ==========
-// import Cart from './pages/Cart'               // DIA 5
-// import Checkout from './pages/Checkout'       // DIA 5
-// import Profile from './pages/Profile'         // DIA 5
-// import Orders from './pages/Orders'           // DIA 5
-// import Unauthorized from './pages/Unauthorized' // DIA 5
+// ========== PÁGINAS PROTEGIDAS (Comentadas até criar) ==========             
+// import Checkout from './pages/Checkout'       
+import Profile from './pages/Profile'         
+// import Orders from './pages/Orders'           
+// import Unauthorized from './pages/Unauthorized' 
 
-// ========== PÁGINAS ADMIN (Comentadas até criar) ==========
-// import AdminPanel from './pages/AdminPanel'   // DIA 6+
+// ========== PÁGINAS ADMIN  ==========
+// import AdminPanel from './pages/AdminPanel'   
 
 function App() {
   return (
@@ -111,14 +109,14 @@ function App() {
                   /> */}
                   
                   {/* Perfil - DIA 5 */}
-                  {/* <Route 
+                  <Route 
                     path="/perfil" 
                     element={
                       <ProtectedRoute>
                         <Profile />
                       </ProtectedRoute>
                     } 
-                  /> */}
+                  />
                   
                   {/* Pedidos - DIA 5 */}
                   {/* <Route 

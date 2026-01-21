@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * - POST /api/auth/login - Login
  */
 @RestController
-@RequestMapping("/auth")  // ✅ Sem /api (context-path já adiciona)
+@RequestMapping("/auth")  //  /api (context-path já adiciona)
 @RequiredArgsConstructor
 @Tag(name = "Autenticação", description = "Endpoints de cadastro e login")
 public class AuthenticationController {
