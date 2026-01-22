@@ -1,4 +1,5 @@
 import axios from 'axios'
+import logger from '../utils/logger'
 
 // URL base da API (backend)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
@@ -21,22 +22,21 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
+    logger.debug({ method: config.method, url: config.url }, 'Requisição enviada')
+    
     return config
   },
   (error) => {
+    logger.error({ error }, 'Erro ao interceptar requisição')
     return Promise.reject(error)
-  }
-)
-
 /// 4. Interceptor de RESPOSTA (tratar erros globalmente)
 api.interceptors.response.use(
   (response) => {
-    // Log para debug (remover em produção)
-    console.log(' Resposta:', {
+    logger.info({
       status: response.status,
       url: response.config.url,
-      data: response.data,
-    })
+      method: response.config.method,
+    }, 'Resposta recebida')
     
     return response
   },
@@ -46,17 +46,18 @@ api.interceptors.response.use(
     const message = error.response?.data?.message || error.message
     const url = error.config?.url
     
-    console.error(' Erro na resposta:', {
+    logger.error({
       status,
       message,
       url,
-    })
+      method: error.config?.method,
+    }, 'Erro na resposta da API')
     
     // Tratamento de erros específicos
     switch (status) {
       case 401:
         // Não autorizado - Token inválido/expirado
-        console.warn(' Token inválido ou expirado')
+        logger.warn('Token inválido ou expirado')
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         
@@ -68,32 +69,35 @@ api.interceptors.response.use(
         
       case 403:
         // Proibido - Sem permissão
-        console.warn(' Sem permissão para acessar este recurso')
+        logger.warn({ url }, 'Sem permissão para acessar este recurso')
         break
         
       case 404:
         // Não encontrado
-        console.warn(' Recurso não encontrado:', url)
+        logger.warn({ url }, 'Recurso não encontrado')
         break
         
       case 500:
         // Erro interno do servidor
-        console.error(' Erro interno do servidor')
+        logger.error('Erro interno do servidor')
         break
         
       case 503:
         // Serviço indisponível
-        console.error(' Serviço temporariamente indisponível')
+        logger.error('Serviço temporariamente indisponível')
         break
         
       default:
         // Outros erros
         if (!error.response) {
           // Erro de rede (sem resposta do servidor)
-          console.error(' Erro de rede - Servidor inacessível')
+          logger.error('Erro de rede - Servidor inacessível')
         }
     }
     
+    return Promise.reject(error)
+  }
+)   
     return Promise.reject(error)
   }
 )

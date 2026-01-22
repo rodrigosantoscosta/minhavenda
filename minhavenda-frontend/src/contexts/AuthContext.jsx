@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import authService from '../services/authService'
+import logger from '../utils/logger'
 
 const AuthContext = createContext(null)
 
@@ -23,10 +24,10 @@ export function AuthProvider({ children }) {
       if (token && savedUser) {
         setUser(savedUser)
         setIsAuthenticated(true)
-        console.log('✅ Usuário autenticado:', savedUser)
+        logger.info({ userId: savedUser.id, email: savedUser.email }, 'Usuário autenticado')
       }
     } catch (error) {
-      console.error('❌ Erro ao verificar autenticação:', error)
+      logger.error({ error }, 'Erro ao verificar autenticação')
       authService.logout()
     } finally {
       setLoading(false)
@@ -35,17 +36,17 @@ export function AuthProvider({ children }) {
 
   const login = async (email, senha) => {
     try {
-      console.log('🔄 Tentando login...', { email })
+      logger.info({ email }, 'Tentando login')
       setLoading(true)
       
       const response = await authService.login(email, senha)
-      console.log('📦 Resposta completa do backend:', response)
+      logger.debug({ response }, 'Resposta do backend')
       
       // Extrair user da resposta
       // Backend pode retornar: { token, user } ou { token, nome, email, ... }
       let userData = response.user || response
       
-      console.log('👤 Dados do usuário:', userData)
+      logger.debug({ userData }, 'Dados do usuário extraídos')
       
       // Se ainda não tiver nome, tentar pegar do próprio response
       if (!userData.nome && response.nome) {
@@ -59,12 +60,13 @@ export function AuthProvider({ children }) {
       
       // Verificar se tem dados mínimos
       if (!userData.nome) {
-        console.error('❌ Resposta do backend sem campo "nome":', response)
+        logger.error({ response }, 'Resposta do backend sem campo "nome"')
         throw new Error('Resposta do servidor inválida')
       }
       
       setUser(userData)
       setIsAuthenticated(true)
+      logger.info({ userId: userData.id, email: userData.email }, 'Login realizado com sucesso')
       
       alert(`Bem-vindo, ${userData.nome}!`)
       
@@ -74,19 +76,19 @@ export function AuthProvider({ children }) {
       
       return { success: true }
     } catch (error) {
-      console.error('❌ Erro completo no login:', error)
+      logger.error({ error }, 'Erro ao fazer login')
       
       let message = 'Erro ao fazer login'
       
       if (error.response) {
         // Erro da API
-        console.log('Response error:', error.response)
+        logger.error({ status: error.response.status }, 'Erro de resposta da API')
         message = error.response.data?.message || 
                  error.response.data?.error ||
                  `Erro ${error.response.status}: ${error.response.statusText}`
       } else if (error.request) {
         // Requisição enviada mas sem resposta
-        console.log('Request error:', error.request)
+        logger.error('Servidor não respondeu')
         message = 'Servidor não respondeu. Verifique se o backend está rodando.'
       } else {
         // Erro na configuração da requisição
@@ -103,16 +105,16 @@ export function AuthProvider({ children }) {
 
   const register = async (nome, email, senha) => {
     try {
-      console.log('🔄 Tentando registrar...', { nome, email })
+      logger.info({ nome, email }, 'Tentando registrar')
       setLoading(true)
       
       const response = await authService.register(nome, email, senha)
-      console.log('📦 Resposta completa do backend:', response)
+      logger.debug({ response }, 'Resposta do backend')
       
       // Extrair user da resposta
       let userData = response.user || response
       
-      console.log('👤 Dados do usuário:', userData)
+      logger.debug({ userData }, 'Dados do usuário extraídos')
       
       if (!userData.nome && response.nome) {
         userData = {
@@ -124,12 +126,13 @@ export function AuthProvider({ children }) {
       }
       
       if (!userData.nome) {
-        console.error('❌ Resposta do backend sem campo "nome":', response)
+        logger.error({ response }, 'Resposta do backend sem campo "nome"')
         throw new Error('Resposta do servidor inválida')
       }
       
       setUser(userData)
       setIsAuthenticated(true)
+      logger.info({ userId: userData.id, email: userData.email }, 'Registrado com sucesso')
       
       alert('Conta criada com sucesso!')
       
@@ -139,7 +142,7 @@ export function AuthProvider({ children }) {
       
       return { success: true }
     } catch (error) {
-      console.error('❌ Erro completo no registro:', error)
+      logger.error({ error }, 'Erro ao criar conta')
       
       let message = 'Erro ao criar conta'
       
@@ -162,7 +165,7 @@ export function AuthProvider({ children }) {
   }
 
   const logout = () => {
-    console.log('🔄 Fazendo logout...')
+    logger.info('Realizando logout')
     authService.logout()
     setUser(null)
     setIsAuthenticated(false)
@@ -171,7 +174,7 @@ export function AuthProvider({ children }) {
   }
 
   const updateUser = (updatedUser) => {
-    console.log('🔄 Atualizando usuário...', updatedUser)
+    logger.info({ userId: updatedUser?.id }, 'Atualizando usuário')
     setUser(updatedUser)
     authService.updateCurrentUser(updatedUser)
   }
