@@ -167,8 +167,8 @@ credentials.csv
 # Docker Secrets
 docker-compose.override.yml
 .dockerenv
-compose.yaml
-docker-compose.yml
+# compose.yaml
+# docker-compose.yml
 # Kubernetes Secrets
 *-secret.yaml
 *-secret.yml

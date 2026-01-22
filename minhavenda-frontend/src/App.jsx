@@ -16,7 +16,6 @@ import ProductDetail from './pages/ProductDetail'
 import NotFound from './pages/NotFound'
 
 // ========== PÁGINAS DE TESTE ==========
-import TestApi from './pages/TestApi'
 // import TestComponents from './pages/TestComponents'
 
 // ========== PÁGINAS PROTEGIDAS (Comentadas até criar) ==========             
@@ -148,7 +147,7 @@ function App() {
                       Remover em produção
                   ======================================== */}
                   
-                  <Route path="/test" element={<TestApi />} />
+                  {/* <Route path="/test" element={<TestApi />} /> */}
                   {/* <Route path="/test-components" element={<TestComponents />} /> */}
 
                   {/* ========================================

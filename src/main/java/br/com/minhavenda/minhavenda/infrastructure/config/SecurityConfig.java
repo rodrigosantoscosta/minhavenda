@@ -92,12 +92,13 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categorias/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
 
                         // ADMIN
                         .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
-
+                        
                         // AUTENTICADAS (qualquer usuário logado)
                         .requestMatchers("/carrinho/**").authenticated()
                         .requestMatchers("/pedidos/**").authenticated()

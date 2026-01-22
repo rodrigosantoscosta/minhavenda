@@ -5,10 +5,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 // Criar instância do Axios
 const api = axios.create({
-  baseURL: API_URL,
+  // Em produção, usar URL relativa (Nginx faz proxy)
+  baseURL: import.meta.env.PROD 
+    ? '/api'  // Produção (Docker)
+    : 'http://localhost:8080/api', // Desenvolvimento
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 })
 
 // Interceptor para adicionar token em todas requisições
