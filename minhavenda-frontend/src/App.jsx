@@ -13,6 +13,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Products from './pages/Products'
 import ProductDetail from './pages/ProductDetail'
+import SearchPage from './pages/SearchPage'
 import NotFound from './pages/NotFound'
 
 // ========== PÁGINAS DE TESTE ==========
@@ -54,9 +55,12 @@ function App() {
                   {/* Produtos - Listagem com Filtros */}
                   <Route path="/produtos" element={<Products />} />
                   
-                  {/* Detalhes do Produto */}
+{/* Detalhes do Produto */}
                   <Route path="/produtos" element={<Products />} />
                   <Route path="/produto/:id" element={<ProductDetail />} />
+                  
+                  {/* Busca de Produtos */}
+                  <Route path="/busca" element={<SearchPage />} />
 
                   <Route path="/carrinho" element={<Cart />} />
                   
