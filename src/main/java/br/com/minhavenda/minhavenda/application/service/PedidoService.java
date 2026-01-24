@@ -48,8 +48,9 @@ public class PedidoService {
      * 3. Valida estoque de todos os produtos
      * 4. Cria pedido com status CRIADO
      * 5. Copia itens do carrinho para o pedido (snapshot)
-     * 6. Finaliza carrinho (status FINALIZADO)
-     * 7. Salva pedido
+     * 6. Salva pedido
+     * 7. Atualiza estoque dos produtos (decrementa quantidade)
+     * 8. Finaliza carrinho (status FINALIZADO)
      *
      * @param email email do usuário (do token JWT)
      * @param request dados do checkout (endereço, observações)
@@ -101,7 +102,14 @@ public class PedidoService {
         // 8. Salvar pedido
         pedido = pedidoRepository.save(pedido);
 
-        // 9. Finalizar carrinho (não deletar, manter histórico)
+        // 9. Atualizar estoque dos produtos
+        for (ItemCarrinho itemCarrinho : carrinho.getItens()) {
+            Produto produto = itemCarrinho.getProduto();
+            produto.removerEstoque(itemCarrinho.getQuantidade());
+            produtoRepository.save(produto);
+        }
+
+        // 10. Finalizar carrinho (não deletar, manter histórico)
         carrinho.finalizar();
         carrinhoRepository.save(carrinho);
 

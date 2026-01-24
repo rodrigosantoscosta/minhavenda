@@ -29,7 +29,10 @@ api.interceptors.request.use(
   (error) => {
     logger.error({ error }, 'Erro ao interceptar requisição')
     return Promise.reject(error)
-/// 4. Interceptor de RESPOSTA (tratar erros globalmente)
+  }
+)
+
+// 4. Interceptor de RESPOSTA (tratar erros globalmente)
 api.interceptors.response.use(
   (response) => {
     logger.info({
@@ -95,9 +98,6 @@ api.interceptors.response.use(
         }
     }
     
-    return Promise.reject(error)
-  }
-)   
     return Promise.reject(error)
   }
 )

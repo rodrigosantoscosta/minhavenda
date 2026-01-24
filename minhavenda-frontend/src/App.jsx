@@ -20,11 +20,11 @@ import NotFound from './pages/NotFound'
 import TestApi from './pages/TestApi'
 // import TestComponents from './pages/TestComponents'
 
-// ========== PÁGINAS PROTEGIDAS (Comentadas até criar) ==========             
-// import Checkout from './pages/Checkout'       
+// ========== PÁGINAS PROTEGIDAS ==========             
+import Checkout from './pages/Checkout'       
 import Profile from './pages/Profile'         
-// import Orders from './pages/Orders'           
-// import Unauthorized from './pages/Unauthorized' 
+import Orders from './pages/Orders'           
+// import Unauthorized from './pages/Unauthorized'
 
 // ========== PÁGINAS ADMIN  ==========
 // import AdminPanel from './pages/AdminPanel'   
@@ -56,13 +56,10 @@ function App() {
                   <Route path="/produtos" element={<Products />} />
                   
 {/* Detalhes do Produto */}
-                  <Route path="/produtos" element={<Products />} />
                   <Route path="/produto/:id" element={<ProductDetail />} />
                   
                   {/* Busca de Produtos */}
                   <Route path="/busca" element={<SearchPage />} />
-
-                  <Route path="/carrinho" element={<Cart />} />
                   
                   {/* ========================================
                       ROTAS DE AUTENTICAÇÃO
@@ -92,25 +89,25 @@ function App() {
                       Descomente quando criar as páginas
                   ======================================== */}
                   
-                  {/* Carrinho - DIA 5 */}
-                  {/* <Route 
+{/* Carrinho */}
+                  <Route 
                     path="/carrinho" 
                     element={
                       <ProtectedRoute>
                         <Cart />
                       </ProtectedRoute>
                     } 
-                  /> */}
-                  
-                  {/* Checkout - DIA 5 */}
-                  {/* <Route 
+                  />
+                   
+                  {/* Checkout */}
+                  <Route 
                     path="/checkout" 
                     element={
                       <ProtectedRoute>
                         <Checkout />
                       </ProtectedRoute>
                     } 
-                  /> */}
+                  />
                   
                   {/* Perfil - DIA 5 */}
                   <Route 
@@ -122,15 +119,15 @@ function App() {
                     } 
                   />
                   
-                  {/* Pedidos - DIA 5 */}
-                  {/* <Route 
+{/* Pedidos */}
+                  <Route 
                     path="/pedidos" 
                     element={
                       <ProtectedRoute>
                         <Orders />
                       </ProtectedRoute>
                     } 
-                  /> */}
+                  />
 
                   {/* ========================================
                       ROTAS ADMIN (Requer Role ADMIN)
