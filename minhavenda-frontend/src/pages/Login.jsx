@@ -163,7 +163,7 @@ export default function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 error={errors.email}
-                icon={<FiMail />}
+                leftIcon={<FiMail />}
                 autoComplete="email"
                 autoFocus
               />
@@ -183,7 +183,7 @@ export default function Login() {
                   value={formData.senha}
                   onChange={handleChange}
                   error={errors.senha}
-                  icon={<FiLock />}
+                  leftIcon={<FiLock />}
                   autoComplete="current-password"
                 />
                 <button

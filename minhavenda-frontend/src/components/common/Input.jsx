@@ -10,6 +10,7 @@ import { FiEye, FiEyeOff } from 'react-icons/fi'
  * @param {string} helperText - Texto de ajuda
  * @param {ReactNode} leftIcon - Ícone à esquerda
  * @param {ReactNode} rightIcon - Ícone à direita
+ * @param {ReactNode} rightElement - Elemento customizado à direita (botão, etc.)
  * @param {boolean} required - Campo obrigatório
  * @param {boolean} disabled - Campo desabilitado
  * @param {string} size - sm | md | lg
@@ -21,11 +22,12 @@ const Input = forwardRef(({
   helperText,
   leftIcon,
   rightIcon,
+  rightElement,
   required = false,
   disabled = false,
   size = 'md',
   className = '',
-  ...props
+  ...restProps
 }, ref) => {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
@@ -38,12 +40,16 @@ const Input = forwardRef(({
     lg: 'px-4 py-3 text-lg',
   }
 
+  // Determinar se há conteúdo à direita
+  const hasRightContent = rightElement || rightIcon || isPassword
+  
   // Input classes
   const inputClasses = `
     w-full
     ${sizeStyles[size]}
     ${leftIcon ? 'pl-10' : ''}
-    ${rightIcon || isPassword ? 'pr-10' : ''}
+    ${hasRightContent ? 'pr-10' : ''}
+    ${rightElement ? 'has-right-element' : ''}
     border rounded-lg
     ${error 
       ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
@@ -82,11 +88,18 @@ const Input = forwardRef(({
           disabled={disabled}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? 'error-message' : helperText ? 'helper-text' : undefined}
-          {...props}
+          {...restProps}
         />
 
-        {/* Right Icon or Password Toggle */}
-        {(rightIcon || isPassword) && (
+        {/* Right Element (prioridade sobre rightIcon/password) */}
+        {rightElement && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+            {rightElement}
+          </div>
+        )}
+
+        {/* Right Icon or Password Toggle (só se não houver rightElement) */}
+        {!rightElement && (rightIcon || isPassword) && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             {isPassword ? (
               <button

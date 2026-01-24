@@ -228,7 +228,7 @@ export default function Profile() {
                   onChange={handleChange}
                   disabled={!isEditing}
                   error={errors.nome}
-                  icon={<FiUser />}
+                  leftIcon={<FiUser />}
                 />
               </div>
 
@@ -244,7 +244,7 @@ export default function Profile() {
                   onChange={handleChange}
                   disabled={!isEditing}
                   error={errors.email}
-                  icon={<FiMail />}
+                  leftIcon={<FiMail />}
                 />
               </div>
 
@@ -260,7 +260,7 @@ export default function Profile() {
                   value={formData.telefone}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  icon={<FiPhone />}
+                  leftIcon={<FiPhone />}
                 />
               </div>
 
@@ -275,7 +275,7 @@ export default function Profile() {
                   value={formData.cpf}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  icon={<FiShield />}
+                  leftIcon={<FiShield />}
                 />
               </div>
             </div>
