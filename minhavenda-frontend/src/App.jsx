@@ -24,6 +24,7 @@ import TestApi from './pages/TestApi'
 import Checkout from './pages/Checkout'       
 import Profile from './pages/Profile'         
 import Orders from './pages/Orders'           
+import OrderDetail from './pages/OrderDetail'           
 // import Unauthorized from './pages/Unauthorized'
 
 // ========== PÁGINAS ADMIN  ==========
@@ -55,7 +56,7 @@ function App() {
                   {/* Produtos - Listagem com Filtros */}
                   <Route path="/produtos" element={<Products />} />
                   
-{/* Detalhes do Produto */}
+                  {/* Detalhes do Produto */}
                   <Route path="/produto/:id" element={<ProductDetail />} />
                   
                   {/* Busca de Produtos */}
@@ -119,12 +120,22 @@ function App() {
                     } 
                   />
                   
-{/* Pedidos */}
+ {/* Pedidos */}
                   <Route 
                     path="/pedidos" 
                     element={
                       <ProtectedRoute>
                         <Orders />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Detalhes do Pedido */}
+                  <Route 
+                    path="/pedido/:id" 
+                    element={
+                      <ProtectedRoute>
+                        <OrderDetail />
                       </ProtectedRoute>
                     } 
                   />

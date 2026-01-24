@@ -12,7 +12,7 @@ export default function ImageGallery({
   // Se não houver imagens, usar placeholder
   const imageList = images.length > 0 
     ? images 
-    : ['https://via.placeholder.com/600x600?text=Produto']
+    : ['https://placehold.co/600x400/transparent/F00']
 
   const currentImage = imageList[selectedIndex] || imageList[0]
 
@@ -31,7 +31,7 @@ export default function ImageGallery({
       {/* Imagem Principal */}
       <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group">
         <img
-          src={imageError ? 'https://via.placeholder.com/600x600?text=Imagem+Indisponível' : currentImage}
+          src={imageError ? 'https://placehold.co/600x400/transparent/F00' : currentImage}
           alt="Produto"
           onError={() => setImageError(true)}
           className="w-full h-full object-cover"
@@ -95,7 +95,7 @@ export default function ImageGallery({
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/150x150?text=Img'
+                  e.target.src = 'https://placehold.co/600x400/transparent/F00'
                 }}
               />
             </button>

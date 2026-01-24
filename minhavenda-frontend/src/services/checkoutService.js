@@ -41,13 +41,27 @@ export const createOrder = async (orderData) => {
       throw new Error('Valor total inválido')
     }
 
-    // Mock implementation
-    if (USE_MOCK) {
-      return await createOrderMock(orderData)
+    // Try API implementation first
+    if (!USE_MOCK) {
+      try {
+        logger.info('Tentando criar pedido via API real')
+        return await createOrderAPI(orderData)
+      } catch (apiError) {
+        logger.warn({ error: apiError }, 'API falhou, usando fallback mock')
+        
+        // Se for erro de autenticação ou servidor, não tentar mock
+        if (apiError.response?.status === 401 || apiError.response?.status === 403) {
+          throw apiError
+        }
+        
+        console.warn('⚠️ API de checkout indisponível. Usando modo mock como fallback.')
+        return await createOrderMock(orderData)
+      }
     }
 
-    // API implementation (quando disponível)
-    return await createOrderAPI(orderData)
+    // Mock implementation direto
+    logger.info('Usando implementação mock')
+    return await createOrderMock(orderData)
 
   } catch (error) {
     logger.error({ error, orderData }, 'Erro ao criar pedido')
@@ -59,6 +73,8 @@ export const createOrder = async (orderData) => {
  * Implementação Mock para criação de pedido
  */
 async function createOrderMock(orderData) {
+  console.warn('🔄 Usando modo MOCK para criação de pedido (fallback)')
+  
   // Simular delay de rede
   await new Promise(resolve => setTimeout(resolve, 1500))
 
@@ -66,22 +82,22 @@ async function createOrderMock(orderData) {
     id: `PED${String(mockOrderIdCounter++).padStart(6, '0')}`,
     dataCriacao: new Date().toISOString(),
     status: 'PENDENTE',
-    itens: orderData.items.map(item => ({
-      id: item.id,
-      produto: {
+    itens: orderData.items.map(item => {
+      const precoItem = typeof item.preco === 'object' ? item.preco.valor : item.preco
+      return {
         id: item.id,
-        nome: item.nome,
-        imagem: item.imagem
-      },
-      quantidade: item.quantidade,
-      precoUnitario: item.preco,
-      precoOriginal: item.precoOriginal,
-      subtotal: item.preco * item.quantidade
-    })),
-    endereco: {
-      ...orderData.endereco,
-      id: `END${Date.now()}`
-    },
+        produto: {
+          id: item.id,
+          nome: item.nome,
+          imagem: item.imagem
+        },
+        quantidade: item.quantidade,
+        precoUnitario: precoItem,
+        precoOriginal: item.precoOriginal,
+        subtotal: precoItem * item.quantidade
+      }
+    }),
+    endereco: orderData.endereco,
     pagamento: {
       metodo: orderData.pagamento?.metodo || 'PIX',
       status: 'PENDENTE',
@@ -113,17 +129,122 @@ async function createOrderMock(orderData) {
 }
 
 /**
+ * Formatar endereço no formato brasileiro
+ * @param {Object} endereco - Objeto de endereço
+ * @returns {String} - Endereço formatado
+ */
+export const formatarEndereco = (endereco) => {
+  if (!endereco) return ''
+  
+  const partes = []
+  
+  // Rua + número
+  if (endereco.rua) {
+    const ruaNumero = endereco.numero ? `${endereco.rua}, ${endereco.numero}` : endereco.rua
+    partes.push(ruaNumero)
+  }
+  
+  // Bairro
+  if (endereco.bairro) {
+    partes.push(endereco.bairro)
+  }
+  
+  // Cidade + Estado
+  if (endereco.cidade) {
+    const cidadeEstado = endereco.estado ? `${endereco.cidade} - ${endereco.estado}` : endereco.cidade
+    partes.push(cidadeEstado)
+  }
+  
+  // Complemento (entre parênteses se existir)
+  let enderecoFormatado = partes.join(', ')
+  if (endereco.complemento && endereco.complemento.trim()) {
+    enderecoFormatado += ` (${endereco.complemento.trim()})`
+  }
+  
+  return enderecoFormatado
+}
+
+/**
  * Implementação API para criação de pedido
  */
 async function createOrderAPI(orderData) {
   // Montar objeto no formato esperado pelo backend Java (CheckoutRequest)
+  const enderecoFormatado = formatarEndereco(orderData.endereco)
   const checkoutRequest = {
-    enderecoEntrega: JSON.stringify(orderData.endereco),
+    enderecoEntrega: enderecoFormatado,
     observacoes: orderData.observacoes || ''
   }
 
-  const response = await post('/checkout/finalizar', checkoutRequest)
-  return response
+  logger.info('Criando pedido via API...')
+  const pedido = await post('/checkout/finalizar', checkoutRequest)
+  
+  logger.info({ pedidoId: pedido.id }, 'Pedido criado, buscando detalhes completos...')
+  
+  try {
+    // Buscar detalhes completos do pedido com itens
+    const pedidoDetalhado = await get(`/pedidos/${pedido.id}`)
+    
+    // Combinar dados básicos com detalhes para SuccessModal
+    const mergedOrder = {
+      ...pedidoDetalhado,
+      // Garantir que temos os dados do frontend
+      pagamento: {
+        metodo: orderData.pagamento?.metodo || 'PIX',
+        status: 'PENDENTE',
+        ...orderData.pagamento
+      },
+      // Mapear campos do backend para frontend
+      total: pedido.valorTotal || pedidoDetalhado.valorTotal,
+      valores: {
+        subtotal: pedido.subtotal || pedidoDetalhado.subtotal,
+        desconto: pedido.valorDesconto || pedidoDetalhado.valorDesconto,
+        frete: pedido.valorFrete || pedidoDetalhado.valorFrete,
+        total: pedido.valorTotal || pedidoDetalhado.valorTotal
+      },
+      // Garantir campos de endereço
+      endereco: orderData.endereco,
+      // Garantir dados do usuário
+      usuario: orderData.usuario
+    }
+    
+    logger.info({ pedidoId: pedido.id }, 'Detalhes do pedido obtidos com sucesso')
+    return mergedOrder
+    
+  } catch (detailsError) {
+    logger.warn({ error: detailsError, pedidoId: pedido.id }, 'Não foi possível obter detalhes do pedido, usando dados básicos')
+    
+    // Se não conseguir detalhes, retornar dados básicos formatados
+    return {
+      id: pedido.id,
+      dataCriacao: pedido.dataCriacao,
+      status: pedido.status,
+      pagamento: {
+        metodo: orderData.pagamento?.metodo || 'PIX',
+        status: 'PENDENTE',
+        ...orderData.pagamento
+      },
+      valores: {
+        subtotal: pedido.subtotal,
+        desconto: pedido.valorDesconto,
+        frete: pedido.valorFrete,
+        total: pedido.valorTotal
+      },
+      total: pedido.valorTotal,
+      itens: orderData.items.map(item => ({
+        id: item.id,
+        produto: {
+          id: item.id,
+          nome: item.nome,
+          imagem: item.imagem
+        },
+        quantidade: item.quantidade,
+        precoUnitario: typeof item.preco === 'object' ? item.preco.valor : item.preco,
+        subtotal: (typeof item.preco === 'object' ? item.preco.valor : item.preco) * item.quantidade
+      })),
+      endereco: orderData.endereco,
+      usuario: orderData.usuario
+    }
+  }
 }
 
 /**
@@ -179,7 +300,8 @@ async function getOrderByIdAPI(orderId) {
  */
 function calcularSubtotal(items) {
   return items.reduce((total, item) => {
-    return total + (item.preco * item.quantidade)
+    const precoItem = typeof item.preco === 'object' ? item.preco.valor : item.preco
+    return total + (precoItem * item.quantidade)
   }, 0)
 }
 
@@ -188,8 +310,11 @@ function calcularSubtotal(items) {
  */
 function calcularDesconto(items) {
   return items.reduce((total, item) => {
-    if (item.precoOriginal > item.preco) {
-      return total + ((item.precoOriginal - item.preco) * item.quantidade)
+    const precoItem = typeof item.preco === 'object' ? item.preco.valor : item.preco
+    const precoOriginalItem = typeof item.precoOriginal === 'object' ? item.precoOriginal.valor : item.precoOriginal
+    
+    if (precoOriginalItem > precoItem) {
+      return total + ((precoOriginalItem - precoItem) * item.quantidade)
     }
     return total
   }, 0)

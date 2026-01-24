@@ -6,7 +6,7 @@ import {
   FiCreditCard,
   FiMapPin
 } from 'react-icons/fi'
-import { calcularFrete } from '../../services/checkoutService'
+import { calcularFrete, formatarEndereco } from '../../services/checkoutService'
 
 /**
  * OrderSummary Component
@@ -22,15 +22,27 @@ export default function OrderSummary({
   showPayment = true,
   className = ''
 }) {
+  // Função auxiliar para extrair valor do preço (objeto ou número)
+  const getPrecoValue = (preco) => {
+    if (typeof preco === 'object' && preco !== null) {
+      return preco.valor || 0
+    }
+    return preco || 0
+  }
+
   // Calcular valores
   const calcularValores = () => {
     const subtotal = items.reduce((total, item) => {
-      return total + (item.preco * item.quantidade)
+      const preco = getPrecoValue(item.preco)
+      return total + (preco * item.quantidade)
     }, 0)
 
     const desconto = items.reduce((total, item) => {
-      if (item.precoOriginal > item.preco) {
-        return total + ((item.precoOriginal - item.preco) * item.quantidade)
+      const preco = getPrecoValue(item.preco)
+      const precoOriginal = getPrecoValue(item.precoOriginal) || preco
+      
+      if (precoOriginal > preco) {
+        return total + ((precoOriginal - preco) * item.quantidade)
       }
       return total
     }, 0)
@@ -45,6 +57,9 @@ export default function OrderSummary({
 
   // Formatar valores
   const formatarValor = (valor) => {
+    if (typeof valor !== 'number' || isNaN(valor)) {
+      return 'R$ 0,00'
+    }
     return `R$ ${valor.toFixed(2)}`
   }
 
@@ -87,11 +102,11 @@ export default function OrderSummary({
               {/* Imagem do Produto */}
               <div className="flex-shrink-0">
                 <img
-                  src={item.imagem || 'https://via.placeholder.com/60'}
+                  src={item.imagem || 'https://placehold.co/600x400/transparent/F00'}
                   alt={item.nome}
                   className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-lg bg-gray-100"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/60?text=Sem+Imagem'
+                    e.target.src = 'https://placehold.co/600x400/transparent/F00'
                   }}
                 />
               </div>
@@ -102,26 +117,30 @@ export default function OrderSummary({
                   {item.nome}
                 </h4>
                 <p className="text-xs text-gray-500">
-                  {item.quantidade}x {formatarValor(item.preco)}
+                  {item.quantidade}x {formatarValor(getPrecoValue(item.preco))}
                 </p>
                 
                 {/* Preço com desconto */}
-                {item.precoOriginal > item.preco && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-gray-400 line-through">
-                      {formatarValor(item.precoOriginal)}
-                    </span>
-                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
-                      -{Math.round(((item.precoOriginal - item.preco) / item.precoOriginal) * 100)}%
-                    </span>
-                  </div>
-                )}
+                {(() => {
+                  const preco = getPrecoValue(item.preco)
+                  const precoOriginal = getPrecoValue(item.precoOriginal) || preco
+                  return precoOriginal > preco ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-400 line-through">
+                        {formatarValor(precoOriginal)}
+                      </span>
+                      <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                        -{Math.round(((precoOriginal - preco) / precoOriginal) * 100)}%
+                      </span>
+                    </div>
+                  ) : null
+                })()}
               </div>
 
               {/* Subtotal do Item */}
               <div className="flex-shrink-0 text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {formatarValor(item.preco * item.quantidade)}
+                  {formatarValor(getPrecoValue(item.preco) * item.quantidade)}
                 </p>
               </div>
             </div>
@@ -200,14 +219,10 @@ export default function OrderSummary({
                 Endereço de Entrega
               </div>
               <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                <p>
-                  {endereco.rua}, {endereco.numero}
-                  {endereco.complemento && ` - ${endereco.complemento}`}
-                </p>
-                <p>
-                  {endereco.bairro} - {endereco.cidade}/{endereco.estado}
-                </p>
-                <p>CEP: {endereco.cep}</p>
+                <p>{formatarEndereco(endereco)}</p>
+                {endereco.cep && (
+                  <p className="text-xs text-gray-500 mt-1">CEP: {endereco.cep}</p>
+                )}
               </div>
             </div>
           </>

@@ -13,9 +13,30 @@ export default function OrderCard({ order }) {
     dataCriacao,
     status,
     total,
+    valores,
     itens,
     endereco,
   } = order
+
+  // Usar valores.total se total não estiver disponível
+  const orderTotal = total || valores?.total || 0
+
+  // Função auxiliar para extrair valor do preço (objeto ou número)
+  const getPrecoValue = (preco) => {
+    if (typeof preco === 'object' && preco !== null) {
+      return preco.valor || 0
+    }
+    return preco || 0
+  }
+
+  // Função segura para formatar valores
+  const formatarValor = (valor) => {
+    const preco = getPrecoValue(valor)
+    if (typeof preco !== 'number' || isNaN(preco)) {
+      return 'R$ 0,00'
+    }
+    return `R$ ${preco.toFixed(2)}`
+  }
 
   // Status icons
   const statusIcons = {
@@ -133,7 +154,7 @@ export default function OrderCard({ order }) {
         <div>
           <p className="text-sm text-gray-600">Total</p>
           <p className="text-2xl font-bold text-gray-900">
-            R$ {Number(total).toFixed(2)}
+            {formatarValor(orderTotal)}
           </p>
         </div>
 

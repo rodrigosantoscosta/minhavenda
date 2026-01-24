@@ -536,6 +536,7 @@ export function CartProvider({ children }) {
   // 17. Valor que será compartilhado
   const value = {
     items,
+    setItems,  // Export setItems for direct manipulation
     cart,
     loading,
     addItem,

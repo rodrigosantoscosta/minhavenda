@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Modal from './Modal'
 import Button from './Button'
@@ -26,17 +26,40 @@ export default function SuccessModal({
   showActions = true 
 }) {
   const navigate = useNavigate()
+  const onCloseRef = useRef(onClose)
+  
+  // Atualizar ref quando onClose mudar
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  // Função auxiliar para extrair valor do preço (objeto ou número)
+  const getPrecoValue = (preco) => {
+    if (typeof preco === 'object' && preco !== null) {
+      return preco.valor || 0
+    }
+    return preco || 0
+  }
+
+  // Função segura para formatar valores
+  const formatarValor = (valor) => {
+    const preco = getPrecoValue(valor)
+    if (typeof preco !== 'number' || isNaN(preco)) {
+      return 'R$ 0,00'
+    }
+    return `R$ ${preco.toFixed(2)}`
+  }
 
   // Auto close após delay
   useEffect(() => {
     if (isOpen && autoCloseDelay > 0) {
       const timer = setTimeout(() => {
-        onClose()
+        onCloseRef.current()
       }, autoCloseDelay)
 
       return () => clearTimeout(timer)
     }
-  }, [isOpen, autoCloseDelay, onClose])
+  }, [isOpen, autoCloseDelay])
 
   // Navegar para detalhes do pedido
   const handleViewOrder = () => {
@@ -94,7 +117,7 @@ export default function SuccessModal({
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
-      showCloseButton={false}
+      showCloseButton={true}
       closeOnOverlayClick={false}
     >
       <div className="text-center space-y-6">
@@ -139,7 +162,7 @@ export default function SuccessModal({
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Valor Total:</span>
             <span className="font-semibold text-gray-900">
-              R$ {Number(order.valores?.total || order.total).toFixed(2)}
+              {formatarValor(order.valores?.total || order.total)}
             </span>
           </div>
 
@@ -196,7 +219,7 @@ export default function SuccessModal({
                 <div key={item.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <img
-                      src={item.produto?.imagem || 'https://via.placeholder.com/30'}
+                      src={item.produto?.imagem || 'https://placehold.co/600x400/transparent/F00'}
                       alt={item.produto?.nome}
                       className="w-8 h-8 object-cover rounded bg-gray-100"
                     />
@@ -205,7 +228,7 @@ export default function SuccessModal({
                     </span>
                   </div>
                   <span className="text-gray-900 font-medium">
-                    R$ {Number(item.subtotal || (item.precoUnitario * item.quantidade)).toFixed(2)}
+                    {formatarValor(item.subtotal || (item.precoUnitario * item.quantidade))}
                   </span>
                 </div>
               ))}

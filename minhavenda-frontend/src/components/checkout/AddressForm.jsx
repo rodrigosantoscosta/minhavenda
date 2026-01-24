@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Input from '../common/Input'
 import { validarEndereco } from '../../services/checkoutService'
 import { FiMapPin, FiSearch } from 'react-icons/fi'
@@ -65,14 +65,6 @@ export default function AddressForm({
     }
   }, [formData, onAddressChange, isTouched])
 
-  // Auto-buscar CEP quando estiver completo
-  useEffect(() => {
-    const cep = formData.cep.replace(/\D/g, '')
-    if (cep.length === 8 && !isSearchingCep && !cepNotFound) {
-      handleCepSearch()
-    }
-  }, [formData.cep])
-
   // Lidar com mudanças nos campos
   const handleInputChange = (field, value) => {
     // Marcar formulário como "tocado" na primeira interação
@@ -115,7 +107,7 @@ export default function AddressForm({
   }
 
   // Buscar CEP
-  const handleCepSearch = async () => {
+  const handleCepSearch = useCallback(async () => {
     const cep = formData.cep.replace(/\D/g, '')
     
     if (cep.length !== 8) {
@@ -170,7 +162,15 @@ export default function AddressForm({
     } finally {
       setIsSearchingCep(false)
     }
-  }
+  }, [formData.cep])
+
+  // Auto-buscar CEP quando estiver completo
+  useEffect(() => {
+    const cep = formData.cep.replace(/\D/g, '')
+    if (cep.length === 8 && !isSearchingCep && !cepNotFound) {
+      handleCepSearch()
+    }
+  }, [formData.cep, cepNotFound, isSearchingCep])
 
   // Formatar CEP enquanto digita
   const handleCepChange = (value) => {

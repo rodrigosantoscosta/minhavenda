@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../contexts/CartContext'
 import { useAuth } from '../contexts/AuthContext'
@@ -26,7 +26,10 @@ import {
 export default function Checkout() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { items, clearCart } = useCart()
+  const { items: cartItems, setItems } = useCart()
+  
+  // Garantir que items seja sempre um array
+  const items = useMemo(() => Array.isArray(cartItems) ? cartItems : [], [cartItems])
 
   // Estados do formulário
   const [endereco, setEndereco] = useState({})
@@ -43,29 +46,57 @@ export default function Checkout() {
   const [createdOrder, setCreatedOrder] = useState(null)
   const [error, setError] = useState('')
 
+
+
+
+
+
+
+  // Função segura para formatar valores
+  const formatarValor = (valor) => {
+    if (typeof valor !== 'number' || isNaN(valor)) {
+      return 'R$ 0,00'
+    }
+    return `R$ ${valor.toFixed(2)}`
+  }
+
   // Verificar se usuário está logado
   useEffect(() => {
-    if (!user) {
+    if (!user || !user.email) {
+      console.warn('⚠️ Usuário não autenticado ou dados incompletos:', user)
       navigate('/login?redirect=/checkout')
     }
   }, [user, navigate])
 
-  // Verificar se carrinho está vazio
+  // Verificar se carrinho está vazio (com delay para evitar race conditions)
   useEffect(() => {
-    if (items.length === 0) {
-      navigate('/carrinho')
-    }
-  }, [items, navigate])
+    const timer = setTimeout(() => {
+      // Só redirecionar se o modal de sucesso NÃO estiver aberto
+      if (items.length === 0 && !showSuccessModal) {
+        navigate('/carrinho')
+      }
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [items, navigate, showSuccessModal])
 
   // Calcular valores
   const calcularValores = () => {
     const subtotal = items.reduce((total, item) => {
-      return total + (item.preco * item.quantidade)
+      const precoItem = typeof item.preco === 'object' ? item.preco.valor : item.preco
+      const preco = precoItem || 0
+      return total + (preco * item.quantidade)
     }, 0)
 
     const desconto = items.reduce((total, item) => {
-      if (item.precoOriginal > item.preco) {
-        return total + ((item.precoOriginal - item.preco) * item.quantidade)
+      const precoItem = typeof item.preco === 'object' ? item.preco.valor : item.preco
+      const precoOriginalItem = typeof item.precoOriginal === 'object' ? item.precoOriginal.valor : item.precoOriginal
+      
+      const preco = precoItem || 0
+      const precoOriginal = precoOriginalItem || preco
+      
+      if (precoOriginal > preco) {
+        return total + ((precoOriginal - preco) * item.quantidade)
       }
       return total
     }, 0)
@@ -77,13 +108,6 @@ export default function Checkout() {
   }
 
   const { subtotal, desconto, frete, total } = calcularValores()
-
-  // Lidar com mudanças no endereço
-  const handleAddressChange = ({ address, isValid, errors }) => {
-    setEndereco(address)
-    setEnderecoValido(isValid)
-    setEnderecoErrors(errors)
-  }
 
   // Calcular parcelas
   const calcularParcelas = (valorTotal) => {
@@ -97,7 +121,7 @@ export default function Checkout() {
         parcelas.push({
           numero: i,
           valor: valorParcela,
-          texto: `${i}x de R$ ${valorParcela.toFixed(2)} ${i === 1 ? '(sem juros)' : '(sem juros)'}`
+          texto: `${i}x de ${formatarValor(valorParcela)} ${i === 1 ? '(sem juros)' : '(sem juros)'}`
         })
       }
     }
@@ -124,6 +148,13 @@ export default function Checkout() {
 
     return true
   }
+
+  // Lidar com mudanças no endereço
+  const handleAddressChange = useCallback(({ address, isValid, errors }) => {
+    setEndereco(address)
+    setEnderecoValido(isValid)
+    setEnderecoErrors(errors)
+  }, [])
 
   // Finalizar pedido
   const handleSubmit = async (e) => {
@@ -160,9 +191,9 @@ export default function Checkout() {
         },
         total,
         usuario: {
-          id: user.id,
-          nome: user.name,
-          email: user.email
+          id: user?.id || '1',
+          nome: user?.nome || user?.name || 'Usuário',
+          email: user?.email || 'usuario@exemplo.com'
         }
       }
 
@@ -172,11 +203,12 @@ export default function Checkout() {
       // Salvar pedido criado
       setCreatedOrder(order)
       
-      // Limpar carrinho
-      clearCart()
-      
-      // Mostrar modal de sucesso
+      // Mostrar modal de sucesso ANTES de limpar carrinho
       setShowSuccessModal(true)
+      
+      // Limpar carrinho localmente imediatamente
+      setItems([])
+      localStorage.removeItem('cart')
 
     } catch (err) {
       console.error('Erro ao criar pedido:', err)
@@ -187,15 +219,15 @@ export default function Checkout() {
   }
 
   // Fechar modal de sucesso e redirecionar
-  const handleSuccessModalClose = () => {
+  const handleSuccessModalClose = useCallback(() => {
     setShowSuccessModal(false)
     if (createdOrder) {
       navigate(`/pedido/${createdOrder.id}`)
     }
-  }
+  }, [createdOrder, navigate])
 
-  // Carrinho vazio ou usuário não logado
-  if (!user || items.length === 0) {
+  // Usuário não logado ou carrinho vazio (mas não se modal de sucesso está aberto)
+  if (!user || (items.length === 0 && !showSuccessModal)) {
     return <Loading />
   }
 
@@ -421,7 +453,7 @@ export default function Checkout() {
         isOpen={showSuccessModal}
         onClose={handleSuccessModalClose}
         order={createdOrder}
-        autoCloseDelay={10000}
+        autoCloseDelay={0}
       />
     </div>
   )

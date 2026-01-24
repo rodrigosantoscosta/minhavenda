@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/common/Toast'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
+import logger from '../utils/logger'
 import { 
   FiUser, 
   FiMail, 
