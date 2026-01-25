@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { get } from '../../services/api'
+import logger from '../../utils/logger'
 
 /**
  * Componente SearchFilters - Filtros avançados para busca
@@ -36,7 +37,7 @@ const SearchFilters = ({
         const response = await get('/categorias')
         setCategorias(response || [])
       } catch (error) {
-        console.error('Erro ao carregar categorias:', error)
+        logger.error('Erro ao carregar categorias', { error: error.message })
         setCategorias([])
       } finally {
         setIsLoadingCategorias(false)

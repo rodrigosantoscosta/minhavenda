@@ -45,7 +45,7 @@ export default function OrderDetail() {
       const orderData = await getOrderDetails(id)
       setOrder(orderData)
     } catch (err) {
-      console.error('Erro ao carregar detalhes do pedido:', err)
+      logger.error('Erro ao carregar detalhes do pedido', { error: err.message, orderId: id })
       setError(err.message || 'Não foi possível carregar os detalhes do pedido.')
     } finally {
       setLoading(false)
@@ -69,7 +69,7 @@ export default function OrderDetail() {
       await payOrder(id)
       await loadOrderDetails() // Recarregar dados
     } catch (err) {
-      console.error('Erro ao pagar pedido:', err)
+      logger.error('Erro ao pagar pedido', { error: err.message, orderId: id })
       setError(err.message || 'Não foi possível processar o pagamento.')
     } finally {
       setPaying(false)

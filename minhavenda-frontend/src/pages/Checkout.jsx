@@ -63,7 +63,7 @@ export default function Checkout() {
   // Verificar se usuário está logado
   useEffect(() => {
     if (!user || !user.email) {
-      console.warn('⚠️ Usuário não autenticado ou dados incompletos:', user)
+      logger.warn('Usuário não autenticado ou dados incompletos', { hasUser: !!user, email: user?.email })
       navigate('/login?redirect=/checkout')
     }
   }, [user, navigate])
@@ -211,7 +211,7 @@ export default function Checkout() {
       localStorage.removeItem('cart')
 
     } catch (err) {
-      console.error('Erro ao criar pedido:', err)
+      logger.error('Erro ao criar pedido', { error: err.message, stack: err.stack })
       setError(err.message || 'Ocorreu um erro ao processar seu pedido. Tente novamente.')
     } finally {
       setIsSubmitting(false)

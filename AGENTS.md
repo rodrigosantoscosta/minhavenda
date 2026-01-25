@@ -264,10 +264,206 @@ export const productService = {
 
 ## Development Workflow
 
+### 🚀 Optimized Development Process
+
 1. **Start Backend**: `mvn spring-boot:run` (runs on http://localhost:8080)
-2. **Start Frontend**: `cd minhavenda-frontend && npm run dev` (runs on http://localhost:5173)
+2. **Start Frontend ONCE**: `cd minhavenda-frontend && npm run dev` (runs on http://localhost:5173)
 3. **Access Swagger**: http://localhost:8080/api/swagger-ui.html
 4. **Database**: H2 console available during development
+5. **HOT RELOAD**: Vite automatically updates browser on file changes - NO RESTART NEEDED
+
+### 📋 Task Execution Protocol
+
+#### **Phase 1: Analysis (Read-Only)**
+```bash
+# Static code analysis - NO SERVER RESTART
+grep -r "pattern" src/ --include="*.jsx,*.js"
+read src/components/Component.jsx
+glob "src/**/*.jsx"
+```
+
+#### **Phase 2: Strategy Planning**
+1. Identify root cause of problem
+2. Plan complete solution approach
+3. Determine which files need changes
+4. Group related changes together (batch)
+
+#### **Phase 3: Implementation (Batch Changes)**
+```bash
+# Make ALL related changes FIRST, then test once
+# Leverage Vite's Hot Module Replacement (HMR)
+# Example: Fix component + fix props + update styles = ONE TEST
+```
+
+#### **Phase 4: Validation (Progressive)**
+```bash
+# Static validation (preferred)
+npm run lint
+
+# Build test (only after batch complete)
+npm run build
+
+# Manual browser inspection (only for UI issues)
+# Use dev tools without server restart
+```
+
+### 🎯 Anti-Patterns to Avoid
+
+❌ **NEVER**: Restart dev server for component changes  
+❌ **NEVER**: Run `npm run dev` for each small fix  
+❌ **NEVER**: Test every change individually with full server restart  
+❌ **NEVER**: Open multiple terminal sessions
+❌ **NEVER**: Run npm run dev multiple times in same session
+
+✅ **ALWAYS**: Use Vite's hot reload - NO RESTART NEEDED for React components
+✅ **ALWAYS**: Batch related changes together to minimize server restarts
+✅ **ALWAYS**: Prefer static analysis (grep, read, glob) over server restarts
+✅ **ALWAYS**: Single dev server session per development session
+
+✅ **ALWAYS**: Use Vite's hot reload for React components  
+✅ **ALWAYS**: Batch related changes together  
+✅ **ALWAYS**: Static analysis before implementation  
+✅ **ALWAYS**: Single dev server session per development session
+
+
+
+#### **ReferenceError in useEffect**
+- **Problem**: Cannot access 'validation' before initialization
+- **Root Cause**: useMemo declared after useEffect that uses it
+- **Solution**: Proper declaration order (memo/useCallback before useEffect)
+- **Key Learning**: JavaScript hoisting rules apply to React hooks
+
+### 🎯 Debugging Framework
+
+#### **1. Problem Identification**
+```javascript
+// ✅ Pattern recognition for common issues
+const problemPatterns = {
+  'React does not recognize prop': 'Missing component interface',
+  'Cannot access before initialization': 'Hook declaration order',
+  'Component updating multiple times': 'useEffect dependency loops',
+  'Element positioning conflicts': 'Layout architecture issues'
+}
+```
+
+#### **2. Root Cause Analysis**
+```javascript
+// ✅ Always go beyond surface symptoms
+const rootCauseAnalysis = {
+  symptom: 'Component flickering',
+  immediate_cause: 'Multiple re-renders',
+  root_cause: 'useEffect dependency loops',
+  contributing_factors: ['Multiple state updates', 'Missing debounce']
+}
+```
+
+#### **3. Solution Strategy**
+```javascript
+// ✅ Address multiple layers simultaneously
+const solutionStrategy = {
+  immediate_fix: 'Add debounce to prevent loops',
+  structural_improvement: 'Consolidate state updates',
+  performance_optimization: 'Memoize expensive operations',
+  prevention: 'Establish hook dependency patterns'
+}
+```
+
+### 📈 Best Practices Established
+
+#### **Component Development**
+1. **Interface First**: Define props interface before implementation
+2. **Dependency Management**: Stable dependencies in useCallback/useEffect
+3. **State Batching**: Atomic updates to prevent cascading renders
+4. **Performance First**: Debounce + memoization for optimization
+5. **Layout Coesion**: Integrate actions within component boundaries
+
+#### **Debugging Process**
+1. **Static Analysis**: grep, read, glob for pattern identification
+2. **Problem Isolation**: Identify root cause vs symptoms
+3. **Strategic Planning**: Plan complete solution before implementation
+4. **Batch Implementation**: Group related changes together
+5. **Progressive Testing**: Validate incrementally without restarts
+
+#### **Code Quality**
+1. **Prevention over Correction**: Establish patterns to prevent common issues
+2. **Documentation**: Update AGENTS.md with lessons learned
+3. **Architecture**: Prefer structural solutions over CSS fixes
+4. **Performance**: Consider impact of every change on render cycles
+5. **Maintainability**: Create reusable, extensible components
+
+### 🔄 Performance-First Approach
+
+```javascript
+// ✅ GOOD: Atomic state updates (prevents render loops)
+const handleInputChange = useCallback((field, value) => {
+  setFormData(prev => {
+    const newData = { ...prev, [field]: value }
+    // Handle related field updates in single operation
+    if (field === 'cep') {
+      newData.rua = ''; newData.bairro = ''; newData.cidade = ''
+    }
+    return newData
+  })
+}, [])
+
+// ✅ GOOD: Debounced validation (prevents excessive renders)
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    const validation = validateForm(formData)
+    setErrors(validation.errors)
+  }, 300)
+  return () => clearTimeout(timeoutId)
+}, [formData])
+
+// ❌ BAD: Multiple state updates per interaction
+setFormData(prev => ({ ...prev, [field]: value }))
+setIsTouched(true)
+setErrors(prev => ({ ...prev, [field]: '' }))
+```
+
+### 📊 Error Analysis Framework
+
+#### **1. Static Analysis (Preferred)**
+- **Syntax/Reference Errors**: `grep`, `read` pattern matching
+- **Import/Export Issues**: Dependency analysis
+- **Props Interface**: Component contract verification
+- **Hook Dependencies**: useEffect dependency array validation
+
+#### **2. Build Analysis (Secondary)**
+- **Compilation Errors**: `npm run build` after batch changes
+- **TypeScript Errors**: If applicable
+- **Bundle Analysis**: Size/performance metrics
+
+#### **3. Runtime Analysis (Last Resort)**
+- **Console Errors**: Browser dev tools only
+- **Behavioral Issues**: Manual testing only
+- **Network Issues**: Dev tools network tab
+
+### 🛠️ Debugging Best Practices
+
+#### **Component Performance Issues**
+```javascript
+// ✅ Use React DevTools Profiler
+// ✅ Memoize expensive calculations with useMemo
+// ✅ Use useCallback for event handlers
+// ✅ Avoid dependencies that cause re-renders
+```
+
+#### **State Management Issues**
+```javascript
+// ✅ Atomic operations to prevent race conditions
+// ✅ Debounce validation and API calls
+// ✅ Use refs for values that don't trigger re-renders
+// ❌ Avoid useEffect dependency loops
+```
+
+#### **Layout/Styling Issues**
+```javascript
+// ✅ Check Tailwind classes in browser dev tools
+// ✅ Use responsive prefixes consistently
+// ✅ Test in multiple viewport sizes
+// ✅ Verify z-index stacking context
+```
 
 ## Key Dependencies
 
@@ -298,3 +494,213 @@ export const productService = {
 - Flyway for database versioning
 - Migration files in `src/main/resources/db/migration/`
 - Naming convention: V{number}__description.sql
+
+## 📋 Session Management & Development Protocol
+
+### 🔄 Single Development Session Strategy
+
+#### **Session Initialization**
+```bash
+# Start ONCE per development session
+npm run dev  # Runs on :5173, :5174, :5175, etc.
+# Keep terminal open, leverage hot reload
+```
+
+#### **Process Management**
+```bash
+# Check existing Vite processes
+ps aux | grep -i vite
+# Kill orphaned processes if needed
+taskkill /PID <number> (Windows)
+kill -9 <PID> (Linux/Mac)
+```
+
+#### **Port Management**
+```bash
+# Check available ports
+netstat -an | grep :5173
+# Or use lsof for specific port
+lsof -i :5173
+```
+
+### 📋 Development Protocol Summary
+
+#### **When Starting New Session**
+1. ✅ Check for existing Vite processes
+2. ✅ Kill orphaned processes if found
+3. ✅ Start single `npm run dev` instance
+4. ✅ Use hot reload for React changes
+5. ✅ Only restart if server crashes or hangs
+
+#### **During Development**
+1. ✅ Static analysis first (grep, read, glob)
+2. ✅ Batch related changes together
+3. ✅ Let Vite handle hot reload automatically
+4. ✅ Manual browser testing for UI issues
+5. ✅ Build testing only after batch completion
+
+#### **When Encountering Issues**
+1. ✅ Analyze error patterns with static tools
+2. ✅ Check console without server restart
+3. ✅ Use React DevTools for component inspection
+4. ✅ Network tab for API issues
+5. ✅ Only restart as last resort
+
+
+### 🛠️ Tools for Effective Session Management
+
+#### **Process Monitoring**
+```bash
+# List all Node.js processes
+ps aux | grep node
+# Monitor port usage
+netstat -tulpn | grep :517
+# Find and kill processes
+pkill -f vite
+```
+
+#### **Browser Development**
+- React DevTools for component inspection
+- Console for runtime errors
+- Network tab for API debugging
+- Performance tab for optimization
+- Elements panel for layout issues
+
+#### **IDE/Editor Integration**
+- Use built-in terminals instead of external
+- Configure hot reload preferences
+- Set up error highlighting
+- Enable code completion and linting
+
+## Advanced Patterns & Best Practices
+
+### 🎯 Component Anti-Patterns to Avoid
+
+#### **❌ Performance Anti-Patterns**
+```javascript
+// ❌ Multiple state updates per interaction
+setFormData(prev => ({ ...prev, [field]: value }))
+setIsTouched(true)
+setErrors(prev => ({ ...prev, [field]: '' }))
+
+// ✅ Atomic state update
+setFormData(prev => {
+  const newData = { ...prev, [field]: value }
+  if (field === 'cep') {
+    newData.rua = ''; newData.bairro = ''; newData.cidade = ''
+  }
+  return newData
+})
+setIsTouched(true)
+```
+
+#### **❌ useEffect Dependency Loops**
+```javascript
+// ❌ Callback recreation causing loops
+useEffect(() => {
+  // validation logic
+}, [formData, onAddressChange]) // onAddressChange changes frequently
+
+// ✅ Stable dependencies
+const memoizedOnAddressChange = useCallback((data) => {
+  onAddressChange?.(data)
+}, [onAddressChange])
+
+useEffect(() => {
+  // validation logic with debounce
+}, [formData, memoizedOnAddressChange])
+```
+
+#### **❌ Props Interface Issues**
+```javascript
+// ❌ Unsupported props
+<Input icon={<FiMail />} // 'icon' not supported
+       rightElement={<Button />} // 'rightElement' not supported
+
+// ✅ Correct props
+<Input leftIcon={<FiMail />} 
+       rightElement={<Button />} // implemented in component
+```
+
+### 🔧 Common Solutions for React Performance Issues
+
+#### **1. Debounce for Validation**
+```javascript
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    if (isTouched) {
+      const validation = validarEndereco(formData)
+      setErrors(validation.errors)
+      onAddressChange?.({
+        address: formData,
+        isValid: validation.isValid,
+        errors: validation.errors
+      })
+    }
+  }, 300) // Debounce for 300ms
+
+  return () => clearTimeout(timeoutId)
+}, [formData, isTouched, memoizedOnAddressChange])
+```
+
+#### **2. Memoization for Expensive Operations**
+```javascript
+// ✅ Memoize validation result
+const validation = useMemo(() => validarEndereco(formData), [formData])
+
+// ✅ Memoize callback functions
+const handleInputChange = useCallback((field, value) => {
+  // implementation
+}, [errors]) // Only depend on what's actually used
+```
+
+#### **3. State Update Batching**
+```javascript
+// ✅ Use single update function
+const handleInputChange = useCallback((field, value) => {
+  setFormData(prev => {
+    const newData = { ...prev, [field]: value }
+    
+    // Handle all related logic in one go
+    if (field === 'cep') {
+      const cepNumbers = value.replace(/\D/g, '')
+      if (cepNumbers.length < 8) {
+        newData.rua = ''; newData.bairro = ''; 
+        newData.cidade = ''; newData.estado = ''
+      }
+    }
+    
+    return newData
+  })
+  
+  // Batch related state updates
+  setIsTouched(true)
+  setCepNotFound(false)
+}, [])
+```
+
+### 🐛 Debugging Troubleshooting Guide
+
+#### **ReferenceError: Cannot access 'X' before initialization**
+```
+Cause: Variable declared with const/let used before declaration
+Solution: Move useMemo/useCallback declarations before useEffect
+Example: Move validation useMemo before useEffect that uses it
+```
+
+#### **React does not recognize prop 'X' on a DOM element**
+```
+Cause: Component passing unknown props to HTML elements via {...props}
+Solution: Destructure and filter only valid props, or implement missing prop
+Example: Add rightElement to Input component props interface
+```
+
+#### **Component updating multiple times/flickering**
+```
+Cause: useEffect dependencies causing re-render loops
+Solution: 
+1. Add debounce to validation effects
+2. Use stable callback references (useCallback)
+3. Batch state updates
+4. Memoize expensive calculations
+```

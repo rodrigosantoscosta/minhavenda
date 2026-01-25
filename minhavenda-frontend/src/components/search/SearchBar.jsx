@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import logger from '../../utils/logger'
 
 /**
  * Componente SearchBar - Barra de busca principal
@@ -53,7 +54,7 @@ const SearchBar = ({
         navigate(`/busca?q=${encodeURIComponent(trimmedTerm)}`)
       }
     } catch (error) {
-      console.error('Erro ao executar busca:', error)
+      logger.error('Erro ao executar busca', { error: error.message, termo: trimmedTerm })
     } finally {
       setIsLoading(false)
     }

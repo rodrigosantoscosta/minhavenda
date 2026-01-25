@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom'
 import { FiPackage, FiClock, FiTruck, FiCheck } from 'react-icons/fi'
 import Badge from './Badge'
+import Button from './Button'
 
 /**
  * OrderCard Component
  * 
  * Card para exibir pedido
  */
-export default function OrderCard({ order }) {
+export default function OrderCard({ order, showCancelButton = false, onCancel, cancelling = false }) {
   const {
     id,
     dataCriacao,
@@ -150,7 +151,7 @@ export default function OrderCard({ order }) {
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200 gap-3">
         <div>
           <p className="text-sm text-gray-600">Total</p>
           <p className="text-2xl font-bold text-gray-900">
@@ -158,9 +159,28 @@ export default function OrderCard({ order }) {
           </p>
         </div>
 
-        <span className="text-primary-600 font-medium hover:underline">
-          Ver detalhes →
-        </span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <span className="text-primary-600 font-medium hover:underline text-sm sm:text-base">
+            Ver detalhes →
+          </span>
+          
+          {showCancelButton && onCancel && (
+            <Button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onCancel()
+              }}
+              variant="danger"
+              size="sm"
+              disabled={cancelling}
+              loading={cancelling}
+              className="w-full sm:w-auto order-last sm:order-none"
+            >
+              Cancelar
+            </Button>
+          )}
+        </div>
       </div>
     </Link>
   )

@@ -68,18 +68,18 @@ export default function Products() {
 
   const loadCategorias = async () => {
     try {
-      console.log('📂 Buscando categorias...')
+      logger.info('Buscando categorias')
       const data = await productService.getCategorias()
-      console.log('✅ Categorias recebidas:', data)
+      logger.info('Categorias recebidas', { categoriaCount: Array.isArray(data) ? data.length : 0 })
       
       if (Array.isArray(data)) {
         setCategorias(data)
       } else {
-        console.warn('⚠️ Categorias não é array')
+        logger.warn('Categorias não é array', { dataType: typeof data })
         setCategorias([])
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar categorias:', error)
+      logger.error('Erro ao carregar categorias', { error: error.message })
       toast.error('Erro ao carregar categorias')
     }
   }
@@ -113,44 +113,44 @@ export default function Products() {
       }
       params.sort = sortMapping[sortBy] || 'dataCriacao,desc'
 
-      console.log('📦 Buscando produtos com params:', params)
+      logger.info('Buscando produtos com parametros', { page, sortBy })
       const data = await productService.getProdutos(params)
-      console.log('✅ Resposta do backend:', data)
+      logger.debug('Resposta do backend recebida', { hasContent: !!data?.content, isArray: Array.isArray(data) })
 
       // TRATAMENTO CORRETO DOS DADOS
       let produtosArray = []
       
       // Resposta paginada (Spring Page)
       if (data && data.content && Array.isArray(data.content)) {
-        console.log('📄 Resposta paginada')
+        logger.debug('Formato: resposta paginada Spring Page')
         produtosArray = data.content
         setTotalPages(data.totalPages || 0)
         setTotalElements(data.totalElements || 0)
       }
       // Array direto
       else if (Array.isArray(data)) {
-        console.log('📋 Array direto')
+        logger.debug('Formato: array direto')
         produtosArray = data
         setTotalPages(1)
         setTotalElements(data.length)
       }
       // Objeto com produtos
       else if (data && data.produtos && Array.isArray(data.produtos)) {
-        console.log('📦 Objeto com produtos')
+        logger.debug('Formato: objeto com propriedade produtos')
         produtosArray = data.produtos
         setTotalPages(data.totalPages || 1)
         setTotalElements(data.total || data.produtos.length)
       }
       else {
-        console.warn('⚠️ Formato desconhecido:', data)
+        logger.warn('Formato de resposta desconhecido', { dataType: typeof data })
         produtosArray = []
       }
 
-      console.log('✅ Produtos processados:', produtosArray.length)
+      logger.info('Produtos processados com sucesso', { count: produtosArray.length, page, totalPages })
       setProdutos(produtosArray)
       
     } catch (error) {
-      console.error('❌ Erro ao carregar produtos:', error)
+      logger.error('Erro ao carregar produtos', { error: error.message, status: error.response?.status })
       toast.error('Erro ao carregar produtos')
       setProdutos([])
     } finally {
@@ -335,13 +335,6 @@ export default function Products() {
             )}
           </div>
         )}
-
-        {/* Debug Info */}
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
-          <p className="text-sm text-blue-800">
-            🔍 Debug: {produtos.length} produtos | Página: {page + 1} | Total: {totalPages}
-          </p>
-        </div>
 
         {/* Grid de Produtos */}
         {produtos.length === 0 ? (

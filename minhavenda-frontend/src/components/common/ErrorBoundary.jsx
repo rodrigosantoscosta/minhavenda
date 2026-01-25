@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { FiAlertTriangle } from 'react-icons/fi'
+import logger from '../../utils/logger'
 
 /**
  * ErrorBoundary Component
@@ -18,7 +19,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    logger.error('ErrorBoundary caught an error', { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack })
     
     this.setState({
       error: error,

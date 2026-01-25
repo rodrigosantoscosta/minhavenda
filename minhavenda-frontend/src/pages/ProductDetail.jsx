@@ -62,7 +62,7 @@ export default function ProductDetail() {
         setQuantidade(quantidadeCarrinho)
       }
     } catch (error) {
-      console.error('Erro ao carregar produto:', error)
+      logger.error('Erro ao carregar produto', { error: error.message, produtoId: id })
       toast.error('Produto não encontrado')
       navigate('/produtos')
     } finally {
@@ -88,7 +88,7 @@ export default function ProductDetail() {
       
       setProdutosRelacionados(relacionados)
     } catch (error) {
-      console.error('Erro ao carregar produtos relacionados:', error)
+      logger.error('Erro ao carregar produtos relacionados', { error: error.message, categoriaId: produto?.categoria?.id })
     }
   }
 

@@ -68,7 +68,7 @@ export default function Orders() {
       setCurrentPage(page)
 
     } catch (err) {
-      console.error('Erro ao carregar pedidos:', err)
+      logger.error('Erro ao carregar pedidos', { error: err.message })
       setError(err.message || 'Não foi possível carregar seus pedidos. Tente novamente.')
     } finally {
       setLoading(false)
@@ -119,7 +119,7 @@ export default function Orders() {
       await handleRefresh()
       
     } catch (err) {
-      console.error('Erro ao cancelar pedido:', err)
+      logger.error('Erro ao cancelar pedido', { error: err.message, orderId })
       setError(err.message || 'Não foi possível cancelar o pedido. Tente novamente.')
     } finally {
       setCancellingOrderId(null)
@@ -266,24 +266,13 @@ export default function Orders() {
           <div className="space-y-4">
             {/* Cards de Pedidos */}
             {orders.map((order) => (
-              <div key={order.id} className="relative">
-                <OrderCard order={order} />
-                
-                {/* Botão Cancelar (apenas para pedidos pendentes) */}
-                {order.status === 'PENDENTE' && (
-                  <div className="absolute top-4 right-4">
-                    <Button
-                      onClick={() => handleCancelOrder(order.id)}
-                      variant="danger"
-                      size="sm"
-                      disabled={cancellingOrderId === order.id}
-                      loading={cancellingOrderId === order.id}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <OrderCard 
+                key={order.id}
+                order={order}
+                showCancelButton={order.status === 'PENDENTE'}
+                onCancel={() => handleCancelOrder(order.id)}
+                cancelling={cancellingOrderId === order.id}
+              />
             ))}
 
             {/* Paginação / Carregar Mais */}
