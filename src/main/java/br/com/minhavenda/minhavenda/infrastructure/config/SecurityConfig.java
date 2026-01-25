@@ -45,10 +45,8 @@ public class SecurityConfig {
 
         // Origens permitidas
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:5173"
-                // PRODUÇÃO: Adicione domínio real aqui
+                System.getenv("ALLOWED_ORIGINS").split(",")
+
         ));
 
         // Métodos permitidos

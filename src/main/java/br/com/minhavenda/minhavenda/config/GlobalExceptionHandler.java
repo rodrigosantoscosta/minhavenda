@@ -179,7 +179,7 @@ public class GlobalExceptionHandler {
 
 
     /**
-     * DTO para respostas de erro
+     * DTO para respostas de erroS
      */
     public record ErrorResponse(
             int status,
