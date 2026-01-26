@@ -1,5 +1,5 @@
 -- ========================================
--- V1 - CRIAÇÃO DE TABELAS - VERSÃO CORRIGIDA
+-- V1 - CRIAÇÃO DE TABELAS
 -- Sistema de E-commerce
 -- PostgreSQL
 -- ========================================

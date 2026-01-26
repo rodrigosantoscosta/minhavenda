@@ -80,7 +80,7 @@ public class AuthenticationService {
                 .nome(request.getNome())
                 .email(request.getEmail())
 //                .cpf(cpfSemMascara)  // Salva sem máscara
-                .senhaHash(senhaHash)     // Salva senha hasheada
+                .senha(senhaHash)     // Salva senha hasheada
 //                .telefone(request.getTelefone())
                 .tipo(TipoUsuario.CLIENTE)  // Novo usuário sempre é CLIENTE
                 .ativo(true)

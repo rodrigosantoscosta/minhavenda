@@ -2,7 +2,6 @@ package br.com.minhavenda.minhavenda.domain.entity;
 
 import br.com.minhavenda.minhavenda.domain.enums.TipoUsuario;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -30,7 +29,7 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false, length = 255)
-    private String senhaHash;
+    private String senha;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)
@@ -69,6 +68,6 @@ public class Usuario {
         if (novaSenhaHash == null || novaSenhaHash.isBlank()) {
             throw new IllegalArgumentException("Senha hash não pode ser vazia");
         }
-        this.senhaHash = novaSenhaHash;
+        this.senha = novaSenhaHash;
     }
 }
