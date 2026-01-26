@@ -9,8 +9,8 @@
 -- ============================================================================
 -- TABELA: usuarios
 -- ============================================================================
--- Senha de todos os usuários: admin123 (BCrypt hash)
-INSERT INTO usuarios (id, nome, email, senha, tipo, ativo, data_cadastro) VALUES
+
+INSERT INTO usuarios (id, nome, email, senha_hash, tipo, ativo, data_cadastro) VALUES
     ('11111111-1111-1111-1111-111111111111', 'Administrador', 'admin@minhavenda.com', '$2a$10$N8qQ4j5YvF.sGxkBfJZxL.VjZQx8qhE7XNZZUqZ2Z2Z2Z2Z2Z2Z2Z2', 'ADMIN', true, NOW()),
     ('22222222-2222-2222-2222-222222222222', 'João Silva', 'joao@email.com', '$2a$10$N8qQ4j5YvF.sGxkBfJZxL.VjZQx8qhE7XNZZUqZ2Z2Z2Z2Z2Z2Z2Z2', 'CLIENTE', true, NOW()),
     ('33333333-3333-3333-3333-333333333333', 'Maria Santos', 'maria@email.com', '$2a$10$N8qQ4j5YvF.sGxkBfJZxL.VjZQx8qhE7XNZZUqZ2Z2Z2Z2Z2Z2Z2Z2', 'CLIENTE', true, NOW()),
@@ -21,7 +21,7 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================================
 -- TABELA: categorias
 -- ============================================================================
-INSERT INTO categorias (id, nome, descricao, ativa, data_cadastro) VALUES
+INSERT INTO categorias (id, nome, descricao, ativo, data_cadastro) VALUES
     (1, 'Eletrônicos', 'Produtos eletrônicos e tecnologia', true, NOW()),
     (2, 'Roupas', 'Vestuário e acessórios de moda', true, NOW()),
     (3, 'Livros', 'Livros físicos e digitais', true, NOW()),
