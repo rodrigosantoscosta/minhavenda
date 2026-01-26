@@ -85,6 +85,9 @@ public class Pedido {
     @Column(name = "data_entrega")
     private LocalDateTime dataEntrega;
 
+    @Column(name = "quantidade_itens", nullable = false)
+    private Integer quantidadeItens;
+
     // ========== MÉTODOS DE NEGÓCIO ==========
 
     public void adicionarItem(ItemPedido item) {
@@ -93,10 +96,8 @@ public class Pedido {
     }
 
     public void calcularValorTotal() {
-        // Calcular subtotal de cada item (antes de persistir, subtotal pode ser null)
         this.subtotal = itens.stream()
                 .map(item -> {
-                    // Se subtotal ainda não foi calculado, calcular agora
                     BigDecimal itemSubtotal = item.getSubtotal();
                     if (itemSubtotal == null && item.getQuantidade() != null && item.getPrecoUnitario() != null) {
                         itemSubtotal = item.getPrecoUnitario()
@@ -105,6 +106,10 @@ public class Pedido {
                     return itemSubtotal != null ? itemSubtotal : BigDecimal.ZERO;
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.quantidadeItens = itens.stream()
+                .mapToInt(ItemPedido::getQuantidade)
+                .sum();
 
         this.valorTotal = subtotal
                 .add(valorFrete)

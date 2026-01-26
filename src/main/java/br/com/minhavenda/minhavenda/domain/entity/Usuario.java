@@ -33,6 +33,7 @@ public class Usuario {
     private String senhaHash;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false, length = 20)
     private TipoUsuario tipo;
 
     @Column(nullable = false)
