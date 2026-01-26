@@ -5,19 +5,19 @@ CREATE TABLE IF NOT EXISTS categorias (
     id BIGSERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     descricao VARCHAR(500),
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
     data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     CONSTRAINT categorias_nome_check CHECK (LENGTH(nome) >= 3),
     CONSTRAINT categorias_nome_unique UNIQUE (nome)
 );
 
 -- Índices
-CREATE INDEX idx_categorias_ativa ON categorias(ativa);
+CREATE INDEX idx_categorias_ativo ON categorias(ativo);
 CREATE INDEX idx_categorias_nome ON categorias(nome);
 
 -- Comentários
 COMMENT ON TABLE categorias IS 'Tabela de categorias de produtos';
 COMMENT ON COLUMN categorias.id IS 'Identificador único da categoria (BIGSERIAL)';
 COMMENT ON COLUMN categorias.nome IS 'Nome da categoria (unique)';
-COMMENT ON COLUMN categorias.ativa IS 'Indica se a categoria está ativa';
+COMMENT ON COLUMN categorias.ativo IS 'Indica se a categoria está ativo';
