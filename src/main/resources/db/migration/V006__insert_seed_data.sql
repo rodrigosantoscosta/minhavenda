@@ -19,7 +19,7 @@ INSERT INTO usuarios (id, nome, email, senha, tipo, ativo) VALUES
 -- 2. CATEGORIAS
 -- ==========================================
 
-INSERT INTO categorias (id, nome, descricao, ativa) VALUES
+INSERT INTO categorias (id, nome, descricao, ativo) VALUES
     (1, 'Eletrônicos', 'Produtos eletrônicos e tecnologia', true),
     (2, 'Informática', 'Computadores, periféricos e acessórios', true),
     (3, 'Smartphones', 'Celulares e acessórios', true),
