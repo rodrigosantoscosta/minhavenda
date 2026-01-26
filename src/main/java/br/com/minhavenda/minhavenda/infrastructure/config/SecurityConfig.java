@@ -45,7 +45,7 @@ public class SecurityConfig {
 
         // Origens permitidas
         configuration.setAllowedOrigins(Arrays.asList(
-                System.getenv("ALLOWED_ORIGINS").split(",")
+                System.getenv("CORS_ALLOWED_ORIGINS").split(",")
 
         ));
 
