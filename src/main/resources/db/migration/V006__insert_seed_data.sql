@@ -5,7 +5,7 @@
 -- 1. USUÁRIOS
 -- ==========================================
 
-INSERT INTO usuarios (id, nome, email, senha, tipo, ativo) VALUES
+INSERT INTO usuarios (id, nome, email, senhaHash, tipo, ativo) VALUES
     ('550e8400-e29b-41d4-a716-446655440000', 'Administrador', 'admin@minhavenda.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IKdZCLfQGHZ7zPLFqPGQKQP8k.H8m6', 'ADMIN', true),
     ('550e8400-e29b-41d4-a716-446655440001', 'João Silva', 'joao@teste.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IKdZCLfQGHZ7zPLFqPGQKQP8k.H8m6', 'CLIENTE', true),
     ('550e8400-e29b-41d4-a716-446655440002', 'Maria Santos', 'maria@teste.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IKdZCLfQGHZ7zPLFqPGQKQP8k.H8m6', 'CLIENTE', true),
