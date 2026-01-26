@@ -23,5 +23,5 @@ CREATE INDEX idx_usuarios_ativo ON usuarios(ativo);
 COMMENT ON TABLE usuarios IS 'Tabela de usuários do sistema (ADMIN e CLIENTE)';
 COMMENT ON COLUMN usuarios.id IS 'Identificador único do usuário (UUID)';
 COMMENT ON COLUMN usuarios.email IS 'Email do usuário (unique)';
-COMMENT ON COLUMN usuarios.senhaHah IS 'Senha criptografada com BCrypt';
+COMMENT ON COLUMN usuarios.senhaHash IS 'Senha criptografada com BCrypt';
 COMMENT ON COLUMN usuarios.tipo IS 'Tipo de usuário: ADMIN ou CLIENTE';
