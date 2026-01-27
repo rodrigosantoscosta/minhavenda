@@ -1,7 +1,6 @@
 package br.com.minhavenda.minhavenda.infrastructure.security;
 
 import br.com.minhavenda.minhavenda.domain.entity.Usuario;
-import br.com.minhavenda.minhavenda.domain.valueobject.Email;
 import br.com.minhavenda.minhavenda.infrastructure.persistence.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -59,7 +58,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .username(usuario.getEmail())
                 
                 // Senha hasheada (BCrypt)
-                .password(usuario.getSenhaHash())
+                .password(usuario.getSenha())
                 
                 // Authorities (roles/permissions)
                 // Formato: "ROLE_USER", "ROLE_ADMIN", etc

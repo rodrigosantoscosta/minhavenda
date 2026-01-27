@@ -95,6 +95,14 @@ public class Carrinho {
     private LocalDateTime dataAtualizacao;
 
     /**
+     * Quantidade total de itens no carrinho.
+     */
+
+    @Column(name = "quantidade_total", nullable = false)
+    @Builder.Default
+    private Integer quantidadeTotal = 0;
+
+    /**
      * Calcula o valor total do carrinho.
      *
      * Soma todos os subtotais dos itens.
@@ -104,8 +112,11 @@ public class Carrinho {
         this.valorTotal = itens.stream()
                 .map(ItemCarrinho::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 
+        this.quantidadeTotal = itens.stream()
+                .mapToInt(ItemCarrinho::getQuantidade)
+                .sum();
+    }
     /**
      * Adiciona item ao carrinho.
      *
