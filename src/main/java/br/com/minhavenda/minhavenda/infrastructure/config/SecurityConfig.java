@@ -77,7 +77,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ✅ HABILITAR CORS
+                
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // CSRF desabilitado (API REST stateless)
