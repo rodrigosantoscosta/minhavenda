@@ -91,10 +91,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categorias/**").permitAll()
 
+                        //Health Check
+                        .requestMatchers("/api/actuator/health").permitAll()
+                        
                         // ADMIN
                         .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
+                        .requestMatchers("/api/actuator/health/**").hasRole("ADMIN")  
+                        .requestMatchers("/api/actuator/**").hasRole("ADMIN")
 
                         // AUTENTICADAS (qualquer usuário logado)
                         .requestMatchers("/carrinho/**").authenticated()
