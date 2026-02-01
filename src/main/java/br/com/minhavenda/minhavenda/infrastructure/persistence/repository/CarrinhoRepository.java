@@ -23,4 +23,6 @@ public interface CarrinhoRepository extends JpaRepository<Carrinho, UUID> {
      * @return carrinho se encontrado
      */
     Optional<Carrinho> findByUsuarioAndStatus(Usuario usuario, StatusCarrinho status);
+
+    Optional<Carrinho> findByUsuarioIdAndStatus(UUID usuarioId, StatusCarrinho statusCarrinho);
 }

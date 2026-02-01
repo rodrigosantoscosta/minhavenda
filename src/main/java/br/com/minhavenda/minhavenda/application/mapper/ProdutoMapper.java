@@ -22,10 +22,12 @@ public class ProdutoMapper {
                 .descricao(produto.getDescricao())
                 .preco(produto.getPreco())
                 .ativo(produto.getAtivo())
+                .urlImagem(produto.getUrlImagem())
                 .dataCadastro(produto.getDataCadastro())
                 .categoriaId(produto.getCategoria() != null ? produto.getCategoria().getId() : null)
                 .categoriaNome(produto.getCategoria() != null ? produto.getCategoria().getNome() : null)
                 .quantidadeEstoque(obterQuantidadeEstoque(produto))
+
                 .build();
     }
 
@@ -46,6 +48,7 @@ public class ProdutoMapper {
                 .descricao(dto.getDescricao())
                 .preco(dto.getPreco())
                 .ativo(dto.getAtivo())
+                .urlImagem(dto.getUrlImagem())
                 .build();
     }
 
