@@ -26,7 +26,6 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Pedido {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -50,6 +49,9 @@ public class Pedido {
 
     @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorTotal;
+
+    @Column(name = "quantidade_itens", nullable = false)
+    private Integer quantidadeItens = 0;
 
     @Column(name = "endereco_entrega", nullable = false, length = 500)
     private String enderecoEntrega;
@@ -122,6 +124,7 @@ public class Pedido {
         this.valorFrete = valorFrete;
         this.valorDesconto = valorDesconto;
         this.valorTotal = valorTotal;
+        this.quantidadeItens = 0;
         this.enderecoEntrega = enderecoEntrega;
         this.observacoes = observacoes;
         this.status = StatusPedido.CRIADO;
@@ -173,9 +176,9 @@ public class Pedido {
         if (item == null) {
             throw new IllegalArgumentException("Item não pode ser nulo");
         }
-
         this.itens.add(item);
         item.setPedido(this);
+        this.quantidadeItens = this.getQuantidadeTotal(); // Atualizar campo
         this.calcularValorTotal();
         this.dataAtualizacao = Instant.now();
     }
