@@ -1,8 +1,6 @@
-# AGENTS.md
+AI coding agents guide for **MinhaVenda** e-commerce codebase.
 
-This file provides guidance for AI coding agents working with the MinhaVenda e-commerce codebase.
-
-**MinhaVenda** is a full-stack e-commerce application with a Spring Boot backend following Clean Architecture/DDD principles and a React frontend with Vite.
+MinhaVenda is a full-stack application: Spring Boot backend (Clean Architecture/DDD) + React frontend (Vite).
 
 ---
 
@@ -35,6 +33,7 @@ mvn clean package -DskipTests
 java -jar target/minhavenda-1.0.0.jar
 ```
 
+
 ### Frontend (React + Vite - minhavenda-frontend/)
 
 ```bash
@@ -59,6 +58,7 @@ npm run lint:fix
 npm run preview
 ```
 
+
 ### Docker Services
 
 ```bash
@@ -71,6 +71,7 @@ docker-compose down
 # View logs
 docker-compose logs -f
 ```
+
 
 ---
 
@@ -102,10 +103,12 @@ src/main/java/br/com/minhavenda/minhavenda/
 ```
 
 **Layer Responsibilities:**
+
 - **Presentation:** Handle HTTP requests/responses, delegate to Use Cases
 - **Application:** Orchestrate business logic, publish domain events
 - **Domain:** Core business rules, entities, value objects, domain events
 - **Infrastructure:** External concerns (database, email, etc.)
+
 
 ### Frontend (React + Vite)
 
@@ -119,6 +122,7 @@ minhavenda-frontend/src/
 └── App.jsx           # Main routing and app setup
 ```
 
+
 ---
 
 ## Code Style
@@ -126,6 +130,7 @@ minhavenda-frontend/src/
 ### Backend (Java/Spring Boot)
 
 **Naming Conventions:**
+
 - Classes: `PascalCase` (e.g., `ProdutoController`, `FinalizarCheckoutUseCase`)
 - Methods: `camelCase` (e.g., `buscarPorId`, `executar`)
 - Variables: `camelCase` (e.g., `produtoId`, `nomeUsuario`)
@@ -133,6 +138,7 @@ minhavenda-frontend/src/
 - Packages: `lowercase` (e.g., `br.com.minhavenda.minhavenda.domain`)
 
 **Entity Pattern:**
+
 ```java
 @Entity
 @Table(name = "pedidos")
@@ -159,6 +165,7 @@ public class Pedido {
 ```
 
 **Use Case Pattern:**
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -189,6 +196,7 @@ public class FinalizarCheckoutUseCase {
 ```
 
 **Controller Pattern:**
+
 ```java
 @RestController
 @RequestMapping("/api/pedidos")
@@ -208,6 +216,7 @@ public class PedidoController {
 ```
 
 **Important Patterns:**
+
 - **Entities:** Use `Instant` (UTC) for dates, not `LocalDateTime`
 - **DTOs:** Use `LocalDateTime` (convert in mapper using timezone)
 - **Domain Events:** Always publish after saving aggregate root
@@ -216,9 +225,11 @@ public class PedidoController {
 - **Repositories:** Always use `Optional<T>` for find methods
 - **Transactions:** Use `@Transactional` on Use Cases, not Controllers
 
+
 ### Frontend (React/JavaScript)
 
 **Component Pattern:**
+
 ```jsx
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -240,8 +251,12 @@ export default function ProductCard({ product, onAddToCart }) {
 
   return (
     <div className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+      ```
       <h3 className="font-semibold text-lg mb-2">{product.nome}</h3>
+      ```
+      ```
       <p className="text-primary-600 font-bold">R$ {product.preco}</p>
+      ```
       <Button 
         onClick={handleAddToCart}
         disabled={isLoading}
@@ -255,6 +270,7 @@ export default function ProductCard({ product, onAddToCart }) {
 ```
 
 **Service Pattern:**
+
 ```javascript
 // services/productService.js
 import { api } from './api';
@@ -274,6 +290,7 @@ export const productService = {
 ```
 
 **Styling Guidelines:**
+
 - Use Tailwind CSS for all styling
 - Mobile-first responsive design
 - Avoid inline styles
@@ -300,12 +317,14 @@ mvn jacoco:report
 ```
 
 **Test Naming:**
+
 - Test classes: `{ClassName}Test`
 - Test methods: `deve{Action}{Expected}` (e.g., `deveCriarPedidoComSucesso`)
 - Use `@SpringBootTest` for integration tests
 - Mock external dependencies with `@MockBean`
 
 **Example:**
+
 ```java
 @SpringBootTest
 class PedidoServiceTest {
@@ -333,6 +352,7 @@ class PedidoServiceTest {
 }
 ```
 
+
 ### Frontend Tests
 
 - **Framework:** Vitest (recommended, not yet configured)
@@ -344,6 +364,7 @@ class PedidoServiceTest {
 ## Database Migrations
 
 **Flyway Migrations:**
+
 - Location: `src/main/resources/db/migration/`
 - Naming: `V{version}__{description}.sql`
     - Example: `V5__add_rastreamento_fields_to_pedidos.sql`
@@ -351,6 +372,7 @@ class PedidoServiceTest {
 - Create new migration to fix/change previous ones
 
 **Migration Commands:**
+
 ```bash
 # Migrations run automatically on app start
 mvn spring-boot:run
@@ -366,6 +388,7 @@ mvn flyway:info
 ```
 
 **Creating Migration:**
+
 ```sql
 -- V5__add_rastreamento_fields_to_pedidos.sql
 
@@ -378,7 +401,7 @@ ADD COLUMN transportadora VARCHAR(100);
 CREATE INDEX idx_pedidos_codigo_rastreio ON pedidos(codigo_rastreio);
 ```
 
-**PostgreSQL-specific:** Use `DO $$ BEGIN ... END $$` blocks for conditional DDL
+**PostgreSQL-specific:** Use `DO $ BEGIN ... END $` blocks for conditional DDL
 **H2-specific:** Use `IF NOT EXISTS` clauses
 
 ---
@@ -386,12 +409,14 @@ CREATE INDEX idx_pedidos_codigo_rastreio ON pedidos(codigo_rastreio);
 ## Domain Events
 
 **Pattern:**
+
 1. Entity emits event when state changes
 2. Event is registered internally (`registrarEvento()`)
 3. After saving, publish events (`eventPublisher.publishAll()`)
 4. Clear events from aggregate (`limparEventos()`)
 
 **Example:**
+
 ```java
 // In Use Case
 Pedido pedido = new Pedido(...);
@@ -406,6 +431,7 @@ pedido.limparEventos();
 ```
 
 **Event Listener:**
+
 ```java
 @Component
 @RequiredArgsConstructor
@@ -426,6 +452,7 @@ public class PedidoEventListener {
 }
 ```
 
+
 ---
 
 ## Security
@@ -445,6 +472,7 @@ public class PedidoEventListener {
 **Swagger UI:** http://localhost:8080/api/swagger-ui.html
 
 **Key Endpoints:**
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login
 - `GET /api/produtos/buscar` - Search products
@@ -459,39 +487,45 @@ public class PedidoEventListener {
 ### Adding a New Feature
 
 1. **Create Use Case:**
-   ```bash
-   # Create file: application/usecase/{domain}/{Action}{Entity}UseCase.java
-   ```
+
+```bash
+# Create file: application/usecase/{domain}/{Action}{Entity}UseCase.java
+```
 
 2. **Implement Business Logic in Entity:**
-   ```java
-   // domain/entity/Pedido.java
-   public void novMetodo() {
-       // validation
-       // state change
-       // emit event
-   }
-   ```
+
+```java
+// domain/entity/Pedido.java
+public void novoMetodo() {
+    // validation
+    // state change
+    // emit event
+}
+```
 
 3. **Create DTO:**
-   ```bash
-   # Create file: application/dto/{domain}/{Entity}DTO.java
-   ```
+
+```bash
+# Create file: application/dto/{domain}/{Entity}DTO.java
+```
 
 4. **Update Mapper:**
-   ```java
-   // application/mapper/PedidoMapper.java
-   ```
+
+```java
+// application/mapper/PedidoMapper.java
+```
 
 5. **Create Controller Endpoint:**
-   ```java
-   // presentation/controller/PedidoController.java
-   ```
+
+```java
+// presentation/controller/PedidoController.java
+```
 
 6. **Write Tests:**
-   ```bash
-   # Create file: src/test/.../UseCase Test.java
-   ```
+
+```bash
+# Create file: src/test/.../UseCaseTest.java
+```
 
 7. **Test manually via Swagger**
 
@@ -507,15 +541,123 @@ npm run dev
 ```
 
 **When to Restart:**
+
 - Added new dependency (`npm install`)
 - Changed `vite.config.js`
 - Changed environment variables
 - Server crashed
 
 **Do NOT:**
+
 - Restart for every code change
 - Run `npm run build` during development
 - Start multiple dev servers
+
+---
+
+## Common Pitfalls
+
+### Pedido with valorTotal = 0.00
+
+**Symptom:** Order created with `valorTotal = 0.00` but `quantidadeItens > 0`.
+
+**Root Cause:**
+
+- `ItemPedido` has a `subtotal` field calculated only on `@PrePersist`/`@PreUpdate`
+- When `Pedido.calcularValorTotal()` calls `item.getSubtotal()` before persisting, it returns `null`
+- The stream filters out `null` values, resulting in zero total
+
+**Solution:**
+Override `getSubtotal()` in `ItemPedido` to calculate dynamically if not yet persisted:
+
+```java
+@Entity
+@Table(name = "itens_pedido")
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class ItemPedido {
+    
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
+    
+    @PrePersist
+    @PreUpdate
+    protected void calcularSubtotal() {
+        this.subtotal = calcularSubtotalAtual();
+    }
+    
+    // Override Lombok getter
+    public BigDecimal getSubtotal() {
+        if (this.subtotal != null) {
+            return this.subtotal;
+        }
+        return calcularSubtotalAtual();
+    }
+    
+    private BigDecimal calcularSubtotalAtual() {
+        if (quantidade != null && precoUnitario != null) {
+            return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+        }
+        return BigDecimal.ZERO;
+    }
+}
+```
+
+**Use Case Pattern (Correct Order):**
+
+```java
+// 1. Create pedido with zero values (will be calculated)
+Pedido pedido = new Pedido(
+    usuario,
+    BigDecimal.ZERO,
+    valorFrete,
+    valorDesconto,
+    BigDecimal.ZERO,
+    enderecoEntrega,
+    observacoes
+);
+
+// 2. Add items BEFORE saving
+for (ItemCarrinho item : carrinho.getItens()) {
+    pedido.adicionarItem(item.getProduto(), item.getQuantidade(), item.getPrecoUnitario());
+}
+
+// 3. Save (now with correct values)
+Pedido pedidoSalvo = pedidoRepository.save(pedido);
+```
+
+
+### Missing quantidade_itens Field
+
+**Symptom:** SQL error: `null value in column "quantidade_itens" violates not-null constraint`
+
+**Solution:** Add the field to `Pedido` entity and update it when items change:
+
+```java
+@Column(name = "quantidade_itens", nullable = false)
+private Integer quantidadeItens = 0;
+
+public void adicionarItem(ItemPedido item) {
+    this.itens.add(item);
+    item.setPedido(this);
+    this.calcularValorTotal();
+    this.quantidadeItens = this.getQuantidadeTotal();  // Update count
+    this.dataAtualizacao = Instant.now();
+}
+```
+
+
+### DevTools Not Hot Reloading
+
+**Check:**
+
+1. DevTools dependency in `pom.xml`
+2. IDE auto-compile enabled (IntelliJ: `Build project automatically`)
+3. Look for `LiveReload server is running on port 35729` in console
+
+**If not working:** Use `Ctrl+F9` (IntelliJ) or `Ctrl+B` (Eclipse) to force rebuild.
 
 ---
 
@@ -524,6 +666,7 @@ npm run dev
 ### Backend Issues
 
 **Port 8080 already in use:**
+
 ```bash
 # Find process
 lsof -i :8080
@@ -532,6 +675,7 @@ kill -9 <PID>
 ```
 
 **Database migration failed:**
+
 ```bash
 # Check migration status
 mvn flyway:info
@@ -541,6 +685,7 @@ mvn flyway:repair
 ```
 
 **Tests failing:**
+
 ```bash
 # Run with verbose output
 mvn test -X
@@ -549,9 +694,11 @@ mvn test -X
 mvn spring-boot:run -DskipTests
 ```
 
+
 ### Frontend Issues
 
 **Port 5173 in use:**
+
 ```bash
 # Vite will auto-increment (5174, 5175, etc.)
 # Or kill existing process
@@ -559,6 +706,7 @@ pkill -f vite
 ```
 
 **Module not found:**
+
 ```bash
 # Clean install
 rm -rf node_modules package-lock.json
@@ -566,16 +714,19 @@ npm install
 ```
 
 **Tailwind classes not working:**
+
 ```bash
 # Check tailwind.config.js content paths
 # Restart dev server
 ```
+
 
 ---
 
 ## Git Workflow
 
 **Commit Message Format:**
+
 ```
 type(scope): subject
 
@@ -585,6 +736,7 @@ type(scope): subject
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation
@@ -593,6 +745,7 @@ type(scope): subject
 - `chore`: Maintenance
 
 **Examples:**
+
 ```
 feat(pedido): adicionar campo codigo_rastreio
 
@@ -607,6 +760,7 @@ fix(checkout): corrigir validação de estoque
 ```
 
 **Before Committing:**
+
 ```bash
 # Run tests
 mvn test
@@ -614,6 +768,7 @@ mvn test
 # Run linter (if applicable)
 mvn checkstyle:check
 ```
+
 
 ---
 
@@ -626,6 +781,7 @@ mvn checkstyle:check
 - **Conversion:** Done in Mapper using `ZoneId.of("America/Sao_Paulo")`
 
 **Example:**
+
 ```java
 // PedidoMapper.java
 private LocalDateTime toLocalDateTime(Instant instant) {
@@ -634,12 +790,14 @@ private LocalDateTime toLocalDateTime(Instant instant) {
 }
 ```
 
+
 ### Email Configuration
 
 **Development:** Use Mailtrap or Gmail with app password
 **Production:** Use SendGrid or Amazon SES
 
 **Config:**
+
 ```yaml
 # application.yml
 spring:
@@ -650,15 +808,18 @@ spring:
     password: ${MAIL_PASSWORD}
 ```
 
+
 ### Environment Variables
 
 **Never commit:**
+
 - Database passwords
 - API keys
 - Email passwords
 - JWT secrets
 
 **Use:**
+
 - `application-local.yml` (gitignored)
 - Environment variables
 - `.env` file (gitignored)
@@ -668,6 +829,7 @@ spring:
 ## Key Dependencies
 
 **Backend:**
+
 - Spring Boot 3.2.1
 - Java 17
 - Spring Data JPA
@@ -678,6 +840,7 @@ spring:
 - PostgreSQL / H2
 
 **Frontend:**
+
 - React 19
 - Vite 5
 - Tailwind CSS
@@ -697,6 +860,8 @@ spring:
 
 ---
 
-**Last Updated:** 2026-02-01
+**Last Updated:** 2026-02-02
 
 For questions or issues, consult this file first. It's designed to help AI coding agents understand and work effectively with this codebase.
+
+```

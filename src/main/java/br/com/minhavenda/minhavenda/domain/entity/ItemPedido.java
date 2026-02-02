@@ -2,7 +2,6 @@ package br.com.minhavenda.minhavenda.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -47,11 +46,38 @@ public class ItemPedido {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 
+    /**
+     * Calcula o subtotal antes de persistir.
+     * Este método é chamado automaticamente pelo JPA.
+     */
     @PrePersist
     @PreUpdate
     protected void calcularSubtotal() {
-        if (quantidade != null && precoUnitario != null) {
-            this.subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+        this.subtotal = calcularSubtotalAtual();
+    }
+
+    /**
+     * Retorna o subtotal do item.
+     * Se ainda não foi persistido (subtotal == null), calcula dinamicamente.
+     *
+     * @return subtotal calculado
+     */
+    public BigDecimal getSubtotal() {
+        if (this.subtotal != null) {
+            return this.subtotal;
         }
+        return calcularSubtotalAtual();  // Calcula dinamicamente se ainda não foi salvo
+    }
+
+    /**
+     * Calcula o subtotal atual (quantidade * preço).
+     *
+     * @return subtotal calculado
+     */
+    private BigDecimal calcularSubtotalAtual() {
+        if (quantidade != null && precoUnitario != null) {
+            return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+        }
+        return BigDecimal.ZERO;
     }
 }

@@ -75,24 +75,21 @@ public class FinalizarCheckoutUseCase {
         // 4. Validar estoque
         validarEstoque(carrinho);
 
-        // 5. Calcular valores
-        BigDecimal subtotal = carrinho.getValorTotal();
+        // 5. Criar pedido com valores ZERADOS (serão calculados depois)
         BigDecimal valorFrete = BigDecimal.ZERO; // TODO: calcular frete
         BigDecimal valorDesconto = BigDecimal.ZERO; // TODO: aplicar cupom
-        BigDecimal valorTotal = subtotal.add(valorFrete).subtract(valorDesconto);
 
-        // 6. Criar pedido (SEM emitir evento ainda - ID não existe)
         Pedido pedido = new Pedido(
                 usuario,
-                subtotal,
+                BigDecimal.ZERO,
                 valorFrete,
                 valorDesconto,
-                valorTotal,
+                BigDecimal.ZERO,
                 request.getEnderecoEntrega(),
                 request.getObservacoes()
         );
 
-        // 7. Copiar itens do carrinho para o pedido
+        // 6. Copiar itens do carrinho ANTES de salvar
         for (ItemCarrinho itemCarrinho : carrinho.getItens()) {
             pedido.adicionarItem(
                     itemCarrinho.getProduto(),
@@ -101,27 +98,33 @@ public class FinalizarCheckoutUseCase {
             );
         }
 
-        // 8. Atualizar estoque dos produtos
+        // 7. Atualizar estoque dos produtos
         for (ItemCarrinho itemCarrinho : carrinho.getItens()) {
             Produto produto = itemCarrinho.getProduto();
             produto.removerEstoque(itemCarrinho.getQuantidade());
             produtoRepository.save(produto);
         }
 
-        // 9. Finalizar carrinho (muda status para FINALIZADO)
+        // 8. Finalizar carrinho
         carrinho.finalizar();
         carrinhoRepository.save(carrinho);
 
-        // 10. Salvar pedido (AGORA o ID é gerado)
+        // 9. Log antes de salvar (para debug)
+        log.info("=== ANTES DE SALVAR ===");
+        log.info("Quantidade de itens: {}", pedido.getItens().size());
+        log.info("Subtotal: {}", pedido.getSubtotal());
+        log.info("Valor Total: {}", pedido.getValorTotal());
+
+        // 10. Salvar pedido
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
         log.info("Pedido criado: {} - Valor: R$ {}",
                 pedidoSalvo.getId(), pedidoSalvo.getValorTotal());
 
-        // 11. REGISTRAR EVENTO DE CRIAÇÃO (agora que temos o ID)
+        // 11. Registrar evento de criação
         pedidoSalvo.registrarCriacao();
 
-        // 12. PUBLICAR EVENTOS DO AGGREGATE ROOT
+        // 12. Publicar eventos
         eventPublisher.publishAll(pedidoSalvo.getDomainEvents());
         pedidoSalvo.limparEventos();
 
