@@ -2,12 +2,28 @@ package br.com.minhavenda.minhavenda.application.mapper;
 
 import br.com.minhavenda.minhavenda.application.dto.pedido.*;
 import br.com.minhavenda.minhavenda.domain.entity.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.stream.Collectors;
 
 @Component
 public class PedidoMapper {
+
+    @Value("${app.timezone:America/Sao_Paulo}")
+    private String timeZone;
+
+    private ZoneId getZoneId() {
+        return ZoneId.of(timeZone);
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) return null;
+        return LocalDateTime.ofInstant(instant, getZoneId());
+    }
 
     public PedidoDTO toDTO(Pedido pedido) {
         return PedidoDTO.builder()
@@ -20,10 +36,12 @@ public class PedidoMapper {
                 .enderecoEntrega(pedido.getEnderecoEntrega())
                 .observacoes(pedido.getObservacoes())
                 .quantidadeItens(pedido.getQuantidadeTotal())
-                .dataCriacao(pedido.getDataCriacao())
-                .dataPagamento(pedido.getDataPagamento())
-                .dataEnvio(pedido.getDataEnvio())
-                .dataEntrega(pedido.getDataEntrega())
+
+                .dataCriacao(toLocalDateTime(pedido.getDataEnvio()))
+                .dataPagamento(toLocalDateTime(pedido.getDataEnvio()))
+                .dataEnvio(toLocalDateTime(pedido.getDataEnvio()))
+                .dataEntrega(toLocalDateTime(pedido.getDataEnvio()))
+
                 .build();
     }
 
@@ -38,10 +56,15 @@ public class PedidoMapper {
                 .enderecoEntrega(pedido.getEnderecoEntrega())
                 .observacoes(pedido.getObservacoes())
                 .quantidadeItens(pedido.getQuantidadeTotal())
-                .dataCriacao(pedido.getDataCriacao())
-                .dataPagamento(pedido.getDataPagamento())
-                .dataEnvio(pedido.getDataEnvio())
-                .dataEntrega(pedido.getDataEntrega())
+
+                .dataCriacao(toLocalDateTime(pedido.getDataCriacao()))
+                .dataPagamento(toLocalDateTime(pedido.getDataPagamento()))
+                .dataEnvio(toLocalDateTime(pedido.getDataEnvio()))
+                .dataEntrega(toLocalDateTime(pedido.getDataEntrega()))
+                .dataPagamento(toLocalDateTime(pedido.getDataPagamento()))
+                .dataEnvio(toLocalDateTime(pedido.getDataEnvio()))
+                .dataEntrega(toLocalDateTime(pedido.getDataEnvio()))
+
                 .itens(pedido.getItens().stream()
                         .map(this::itemToDTO)
                         .collect(Collectors.toList()))
