@@ -1,12 +1,10 @@
 package br.com.minhavenda.minhavenda.infrastructure.notification;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -19,34 +17,38 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
 //    private final SpringTemplateEngine templateEngine; // Opcional - para templates HTML
 
-    @Value("${spring.mail.username:noreply@minhavenda.com}")
+    @Value("${app.mail.from:noreply@minhavenda.com.br}")
     private String remetente;
 
     @Value("${app.mail.from-name:MinhaVenda}")
     private String nomeRemetente;
 
+    // ========================================================================
+    // PEDIDO CRIADO
+    // ========================================================================
+
     @Override
     public void enviarEmailPedidoCriado(String destinatario, String nomeUsuario,
                                         UUID pedidoId, Double valorTotal,
                                         Integer quantidadeItens) {
-        log.info("Enviando email de pedido criado para: {}", destinatario);
+        log.info("📧 Enviando email de pedido criado para: {}", destinatario);
 
         try {
             String assunto = "✅ Pedido #" + pedidoId.toString().substring(0, 8) + " criado com sucesso!";
 
             String corpo = String.format("""
                 Olá %s,
-
+                
                 Seu pedido foi criado com sucesso!
-
+                
                 📦 Número do Pedido: %s
                 💰 Valor Total: R$ %.2f
                 📊 Quantidade de Itens: %d
-
+                
                 Aguardamos a confirmação do pagamento para processar seu pedido.
-
+                
                 Obrigado por comprar conosco!
-
+                
                 Atenciosamente,
                 Equipe MinhaVenda
                 """,
@@ -58,41 +60,43 @@ public class EmailServiceImpl implements EmailService {
 
             enviarEmailSimples(destinatario, assunto, corpo);
 
-            log.info("✅ Email de pedido criado enviado para: {}", destinatario);
+            log.info("✅ Email de pedido criado enviado com sucesso para: {}", destinatario);
 
         } catch (Exception e) {
             log.error("❌ Erro ao enviar email de pedido criado para: {}", destinatario, e);
-            throw new RuntimeException("Erro ao enviar email", e);
+            throw new RuntimeException("Erro ao enviar email de pedido criado", e);
         }
     }
 
+    // ========================================================================
+    // PEDIDO PAGO
+    // ========================================================================
+
     @Override
-    public void enviarEmailPedidoPago(String destinatario, String nomeUsuario,
-                                      UUID pedidoId, Double valorPago,
-                                      String metodoPagamento) {
-        log.info("Enviando email de pedido pago para: {}", destinatario);
+    public void enviarEmailPedidoPago(String destinatario, UUID pedidoId,
+                                      Double valorPago, String metodoPagamento) {
+        log.info("📧 Enviando email de pedido pago para: {}", destinatario);
 
         try {
             String assunto = "💳 Pagamento confirmado - Pedido #" + pedidoId.toString().substring(0, 8);
 
             String corpo = String.format("""
-                Olá %s,
-
+                Olá,
+                
                 Seu pagamento foi confirmado!
-
+                
                 📦 Número do Pedido: %s
                 💰 Valor Pago: R$ %.2f
-                💳 Método: %s
-
+                💳 Método de Pagamento: %s
+                
                 Seu pedido está sendo preparado para envio.
                 Você receberá um email com o código de rastreio em breve.
-
-                Obrigado!
-
+                
+                Obrigado pela sua compra!
+                
                 Atenciosamente,
                 Equipe MinhaVenda
                 """,
-                    nomeUsuario,
                     pedidoId.toString().substring(0, 8),
                     valorPago,
                     metodoPagamento
@@ -100,90 +104,110 @@ public class EmailServiceImpl implements EmailService {
 
             enviarEmailSimples(destinatario, assunto, corpo);
 
-            log.info("✅ Email de pedido pago enviado para: {}", destinatario);
+            log.info("✅ Email de pedido pago enviado com sucesso para: {}", destinatario);
 
         } catch (Exception e) {
             log.error("❌ Erro ao enviar email de pedido pago para: {}", destinatario, e);
-            throw new RuntimeException("Erro ao enviar email", e);
+            throw new RuntimeException("Erro ao enviar email de pedido pago", e);
         }
     }
+
+    // ========================================================================
+    // PEDIDO ENVIADO
+    // ========================================================================
 
     @Override
     public void enviarEmailPedidoEnviado(String destinatario, String nomeUsuario,
                                          UUID pedidoId, String codigoRastreio,
-                                         String transportadora) {
-        log.info("Enviando email de pedido enviado para: {}", destinatario);
+                                         String transportadora, String telefone) {
+        log.info("📧 Enviando email de pedido enviado para: {}", destinatario);
 
         try {
             String assunto = "🚚 Pedido enviado - #" + pedidoId.toString().substring(0, 8);
 
+            String telefoneInfo = (telefone != null && !telefone.equals("Não informado"))
+                    ? "\n📱 Telefone de Contato: " + telefone
+                    : "";
+
             String corpo = String.format("""
                 Olá %s,
-
+                
                 Seu pedido foi enviado!
-
+                
                 📦 Número do Pedido: %s
                 🚚 Transportadora: %s
-                📍 Código de Rastreio: %s
-
-                Você pode acompanhar sua entrega através do código de rastreio.
-
-                Obrigado!
-
+                📍 Código de Rastreio: %s%s
+                
+                Você pode acompanhar sua entrega através do código de rastreio acima.
+                Em breve seu pedido chegará ao destino!
+                
+                Obrigado pela preferência!
+                
                 Atenciosamente,
                 Equipe MinhaVenda
                 """,
                     nomeUsuario,
                     pedidoId.toString().substring(0, 8),
                     transportadora,
-                    codigoRastreio
+                    codigoRastreio,
+                    telefoneInfo
             );
 
             enviarEmailSimples(destinatario, assunto, corpo);
 
-            log.info("✅ Email de pedido enviado para: {}", destinatario);
+            log.info("✅ Email de pedido enviado com sucesso para: {} - Rastreio: {}",
+                    destinatario, codigoRastreio);
 
         } catch (Exception e) {
             log.error("❌ Erro ao enviar email de pedido enviado para: {}", destinatario, e);
-            throw new RuntimeException("Erro ao enviar email", e);
+            throw new RuntimeException("Erro ao enviar email de pedido enviado", e);
         }
     }
 
+    // ========================================================================
+    // PEDIDO CANCELADO
+    // ========================================================================
+
     @Override
-    public void enviarEmailPedidoCancelado(String destinatario, String nomeUsuario,
-                                           UUID pedidoId, String motivo) {
-        log.info("Enviando email de pedido cancelado para: {}", destinatario);
+    public void enviarEmailPedidoCancelado(String destinatario, UUID pedidoId, String motivo) {
+        log.info("📧 Enviando email de pedido cancelado para: {}", destinatario);
 
         try {
             String assunto = "❌ Pedido cancelado - #" + pedidoId.toString().substring(0, 8);
 
             String corpo = String.format("""
-                Olá %s,
-
-                Seu pedido foi cancelado.
-
+                Olá,
+                
+                Informamos que seu pedido foi cancelado.
+                
                 📦 Número do Pedido: %s
-                📝 Motivo: %s
-
-                Se você tiver alguma dúvida, entre em contato conosco.
-
+                📝 Motivo do Cancelamento: %s
+                
+                Se você tiver alguma dúvida ou não solicitou este cancelamento,
+                entre em contato conosco imediatamente.
+                
+                Esperamos atendê-lo novamente em breve!
+                
                 Atenciosamente,
                 Equipe MinhaVenda
                 """,
-                    nomeUsuario,
                     pedidoId.toString().substring(0, 8),
                     motivo
             );
 
             enviarEmailSimples(destinatario, assunto, corpo);
 
-            log.info("✅ Email de pedido cancelado enviado para: {}", destinatario);
+            log.info("✅ Email de pedido cancelado enviado com sucesso para: {}", destinatario);
 
         } catch (Exception e) {
             log.error("❌ Erro ao enviar email de pedido cancelado para: {}", destinatario, e);
-            throw new RuntimeException("Erro ao enviar email", e);
+            throw new RuntimeException("Erro ao enviar email de pedido cancelado", e);
         }
     }
+
+    // ========================================================================
+    // MÉTODOS AUXILIARES
+    // ========================================================================
 
     /**
      * Envia email de texto simples.
@@ -196,10 +220,23 @@ public class EmailServiceImpl implements EmailService {
         message.setText(corpo);
 
         mailSender.send(message);
+
+        log.debug("📨 Email enviado - De: {} Para: {} Assunto: {}",
+                remetente, destinatario, assunto);
     }
 
     /**
      * Envia email HTML (opcional - usando Thymeleaf).
+     *
+     * Para usar templates HTML, adicione estas dependências:
+     * - spring-boot-starter-thymeleaf
+     * - thymeleaf-spring6
+     *
+     * Exemplo de uso:
+     * Context context = new Context();
+     * context.setVariable("nomeUsuario", "João");
+     * context.setVariable("pedidoId", pedidoId);
+     * enviarEmailHtml(destinatario, assunto, "email-pedido-criado", context);
      */
 //    private void enviarEmailHtml(String destinatario, String assunto,
 //                                 String template, Context context) throws MessagingException {
@@ -214,6 +251,7 @@ public class EmailServiceImpl implements EmailService {
 //        helper.setText(htmlContent, true);
 //
 //        mailSender.send(message);
+//
+//        log.debug("📨 Email HTML enviado - Template: {} Para: {}", template, destinatario);
 //    }
-
 }

@@ -288,6 +288,7 @@ public class Pedido {
         this.registrarEvento(new PedidoEnviadoEvent(
                 this.id,
                 this.usuario.getId(),
+                this.usuario.getNome(),
                 this.usuario.getEmail(),
                 telefone,
                 codigoRastreio,
