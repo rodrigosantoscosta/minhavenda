@@ -277,16 +277,16 @@ public class PedidoController {
      * @param id ID do pedido
      * @return pedido atualizado
      */
-    @PostMapping("/pedidos/{id}/enviar")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(
-            summary = "Marcar como enviado (ADMIN)",
-            description = "Atualiza status do pedido para ENVIADO"
-    )
-    public ResponseEntity<PedidoDTO> marcarComoEnviado(@PathVariable UUID id) {
-        PedidoDTO pedido = pedidoService.marcarComoEnviado(id);
-        return ResponseEntity.ok(pedido);
-    }
+//    @PostMapping("/pedidos/{id}/enviar")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(
+//            summary = "Marcar como enviado (ADMIN)",
+//            description = "Atualiza status do pedido para ENVIADO"
+//    )
+//    public ResponseEntity<PedidoDTO> marcarComoEnviado(@PathVariable UUID id) {
+//        PedidoDTO pedido = pedidoService.marcarComoEnviado(id);
+//        return ResponseEntity.ok(pedido);
+//    }
 
     /**
      * Marca pedido como entregue (apenas ADMIN).
@@ -297,16 +297,16 @@ public class PedidoController {
      * @param id ID do pedido
      * @return pedido atualizado
      */
-    @PostMapping("/pedidos/{id}/entregar")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(
-            summary = "Marcar como entregue (ADMIN)",
-            description = "Atualiza status do pedido para ENTREGUE"
-    )
-    public ResponseEntity<PedidoDTO> marcarComoEntregue(@PathVariable UUID id) {
-        PedidoDTO pedido = pedidoService.marcarComoEntregue(id);
-        return ResponseEntity.ok(pedido);
-    }
+//    @PostMapping("/pedidos/{id}/entregar")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(
+//            summary = "Marcar como entregue (ADMIN)",
+//            description = "Atualiza status do pedido para ENTREGUE"
+//    )
+//    public ResponseEntity<PedidoDTO> marcarComoEntregue(@PathVariable UUID id) {
+//        PedidoDTO pedido = pedidoService.marcarComoEntregue(id);
+//        return ResponseEntity.ok(pedido);
+//    }
 
     /**
      * Lista pedidos por status (apenas ADMIN).
@@ -316,21 +316,21 @@ public class PedidoController {
      * @param status status do pedido
      * @return lista de pedidos
      */
-    @GetMapping("/admin/pedidos")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(
-            summary = "Listar pedidos por status (ADMIN)",
-            description = "Retorna todos os pedidos com determinado status"
-    )
-    public ResponseEntity<List<PedidoDTO>> listarPedidosPorStatus(
-            @RequestParam(required = false) StatusPedido status
-    ) {
-        if (status == null) {
-            status = StatusPedido.CRIADO; // Default
-        }
-        List<PedidoDTO> pedidos = pedidoService.listarPedidosPorStatus(status);
-        return ResponseEntity.ok(pedidos);
-    }
+//    @GetMapping("/admin/pedidos")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(
+//            summary = "Listar pedidos por status (ADMIN)",
+//            description = "Retorna todos os pedidos com determinado status"
+//    )
+//    public ResponseEntity<List<PedidoDTO>> listarPedidosPorStatus(
+//            @RequestParam(required = false) StatusPedido status
+//    ) {
+//        if (status == null) {
+//            status = StatusPedido.CRIADO; // Default
+//        }
+//        List<PedidoDTO> pedidos = pedidoService.listarPedidosPorStatus(status);
+//        return ResponseEntity.ok(pedidos);
+//    }
 
     /**
      * Busca qualquer pedido por ID (apenas ADMIN).
@@ -340,14 +340,14 @@ public class PedidoController {
      * @param id ID do pedido
      * @return pedido detalhado
      */
-    @GetMapping("/admin/pedidos/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(
-            summary = "Buscar pedido (ADMIN)",
-            description = "Retorna detalhes de qualquer pedido"
-    )
-    public ResponseEntity<PedidoDetalhadoDTO> buscarPedidoAdmin(@PathVariable UUID id) {
-        PedidoDetalhadoDTO pedido = pedidoService.buscarPedidoAdmin(id);
-        return ResponseEntity.ok(pedido);
-    }
+//    @GetMapping("/admin/pedidos/{id}")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(
+//            summary = "Buscar pedido (ADMIN)",
+//            description = "Retorna detalhes de qualquer pedido"
+//    )
+//    public ResponseEntity<PedidoDetalhadoDTO> buscarPedidoAdmin(@PathVariable UUID id) {
+//        PedidoDetalhadoDTO pedido = pedidoService.buscarPedidoAdmin(id);
+//        return ResponseEntity.ok(pedido);
+//    }
 }

@@ -19,7 +19,7 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
 //    private final SpringTemplateEngine templateEngine; // Opcional - para templates HTML
 
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:noreply@minhavenda.com}")
     private String remetente;
 
     @Value("${app.mail.from-name:MinhaVenda}")
