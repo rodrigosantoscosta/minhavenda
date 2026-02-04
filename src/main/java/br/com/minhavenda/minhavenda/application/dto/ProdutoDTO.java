@@ -49,4 +49,6 @@ public class ProdutoDTO {
 
     @Min(value = 0, message = "Quantidade em estoque não pode ser negativa")
     private Integer quantidadeEstoque;
+
+    private String urlImagem;
 }

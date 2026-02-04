@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Input from '../components/common/Input'
 import Button from '../components/common/Button'
+import logger from '../utils/logger'
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 
 export default function Register() {

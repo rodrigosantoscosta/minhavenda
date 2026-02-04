@@ -22,9 +22,17 @@ export default function ProductCard({ product, onAddToCart, onToggleFavorite }) 
     emPromocao,
   } = product
 
-  const precoFinal = precoPromocional || preco?.valor || preco
+  const precoFinal = precoPromocional || preco?.valor || preco || 0
   const temDesconto = precoPromocional && preco?.valor
   const disponivel = estoque > 0
+
+  // Função segura para formatar valores
+  const formatarValor = (valor) => {
+    if (typeof valor !== 'number' || isNaN(valor)) {
+      return 'R$ 0,00'
+    }
+    return `R$ ${valor.toFixed(2)}`
+  }
 
   const handleAddToCart = (e) => {
     e.preventDefault()
@@ -66,7 +74,7 @@ export default function ProductCard({ product, onAddToCart, onToggleFavorite }) 
 
         {/* Product Image */}
         <img
-          src={imagem || '/placeholder-product.png'}
+          src={imagem || 'https://placehold.co/600x400/transparent/F00'}
           alt={nome}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
@@ -108,7 +116,7 @@ export default function ProductCard({ product, onAddToCart, onToggleFavorite }) 
             </p>
           )}
           <p className="text-2xl font-bold text-gray-900">
-            R$ {Number(precoFinal).toFixed(2)}
+            {formatarValor(precoFinal)}
           </p>
         </div>
 

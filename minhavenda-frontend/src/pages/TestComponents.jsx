@@ -19,6 +19,7 @@ import {
   FiLock,
   FiUser 
 } from 'react-icons/fi'
+import { formatarEndereco } from '../services/checkoutService'
 
 export default function TestComponents() {
   const toast = useToast()
@@ -36,7 +37,7 @@ export default function TestComponents() {
     descricao: 'Notebook potente para jogos e trabalho pesado',
     preco: { valor: 4999.90 },
     precoPromocional: 3999.90,
-    imagem: 'https://via.placeholder.com/300',
+    imagem: 'https://placehold.co/600x400/transparent/F00',
     estoque: 5,
     categoria: { nome: 'Eletrônicos' },
     novo: true,
@@ -53,7 +54,7 @@ export default function TestComponents() {
       { 
         produto: { 
           nome: 'Notebook', 
-          imagem: 'https://via.placeholder.com/50' 
+          imagem: 'https://placehold.co/600x400/transparent/F00' 
         } 
       },
       { 
@@ -409,6 +410,172 @@ export default function TestComponents() {
         </div>
       </section>
 
+      {/* ========== SEÇÃO 5: FORMATAÇÃO DE ENDEREÇO ========== */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">5️⃣ Formatação de Endereço</h2>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-sm text-gray-600 mb-4">
+            Teste da função de formatação de endereço:
+          </p>
+          
+          {/* Endereço de teste */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Endereço Original:</h3>
+              <div className="bg-gray-100 p-3 rounded text-sm font-mono">
+                {`{"cep":"91751-775","rua":"Viela Um","numero":"1","complemento":"(Av Ver Roberto Landell Moura)","bairro":"Ipanema","cidade":"Porto Alegre","estado":"RS"}`}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Endereço Formatado:</h3>
+              <div className="bg-green-50 border border-green-200 p-3 rounded">
+                <p className="text-green-800 font-medium">
+                  {formatarEndereco({
+                    cep: "91751-775",
+                    rua: "Viela Um",
+                    numero: "1",
+                    complemento: "(Av Ver Roberto Landell Moura)",
+                    bairro: "Ipanema",
+                    cidade: "Porto Alegre",
+                    estado: "RS"
+                  })}
+                </p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Exemplo Completo:</h3>
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded">
+                <p className="text-blue-800 font-medium">
+                  {formatarEndereco({
+                    cep: "01234-567",
+                    rua: "Rua das Flores",
+                    numero: "123",
+                    complemento: "Apto 45",
+                    bairro: "Centro",
+                    cidade: "São Paulo",
+                    estado: "SP"
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SEÇÃO 6: TESTE DE CÁLCULO DE PREÇOS ========== */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">6️⃣ Teste de Cálculo de Preços</h2>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-sm text-gray-600 mb-4">
+            Teste da função de extração de valores de preço:
+          </p>
+          
+          {/* Função de teste */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Função getPrecoValue:</h3>
+              <div className="bg-gray-100 p-3 rounded font-mono text-sm">
+                {`const getPrecoValue = (preco) => {
+  if (typeof preco === 'object' && preco !== null) {
+    return preco.valor || 0
+  }
+  return preco || 0
+}`}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Testes:</h3>
+              <div className="space-y-2">
+                {(() => {
+                  const getPrecoValue = (preco) => {
+                    if (typeof preco === 'object' && preco !== null) {
+                      return preco.valor || 0
+                    }
+                    return preco || 0
+                  }
+                  
+                  return (
+                    <>
+                      <div className="bg-green-50 p-3 rounded">
+                        <p className="text-sm"><strong>Objeto:</strong> {`{valor: 299.90}`}</p>
+                        <p className="text-sm"><strong>Resultado:</strong> <span className="font-mono">{getPrecoValue({valor: 299.90})}</span></p>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded">
+                        <p className="text-sm"><strong>Número:</strong> {`299.90`}</p>
+                        <p className="text-sm"><strong>Resultado:</strong> <span className="font-mono">{getPrecoValue(299.90)}</span></p>
+                      </div>
+                      <div className="bg-amber-50 p-3 rounded">
+                        <p className="text-sm"><strong>Nulo:</strong> {`null`}</p>
+                        <p className="text-sm"><strong>Resultado:</strong> <span className="font-mono">{getPrecoValue(null)}</span></p>
+                      </div>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SEÇÃO 7: TESTE DE ORDER CARD ========== */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">7️⃣ Teste de OrderCard</h2>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-sm text-gray-600 mb-4">
+            Teste do componente OrderCard com diferentes formatos de total:
+          </p>
+          
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">OrderCard com total em objeto:</h3>
+              <OrderCard 
+                order={{
+                  id: 'PED123456',
+                  dataCriacao: '2026-01-24T10:00:00Z',
+                  status: 'ENTREGUE',
+                  total: { valor: 599.90 },
+                  itens: [
+                    { id: 1, produto: { nome: 'Produto Teste', imagem: 'https://via.placeholder.com/60' }, quantidade: 2 }
+                  ],
+                  endereco: {
+                    rua: 'Rua das Flores',
+                    numero: '123',
+                    bairro: 'Centro',
+                    cidade: 'São Paulo',
+                    estado: 'SP'
+                  }
+                }}
+              />
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-2">OrderCard com valores.total:</h3>
+              <OrderCard 
+                order={{
+                  id: 'PED123457',
+                  dataCriacao: '2026-01-24T11:00:00Z',
+                  status: 'PAGO',
+                  valores: { total: 299.90 },
+                  itens: [
+                    { id: 2, produto: { nome: 'Produto Teste 2', imagem: 'https://via.placeholder.com/60' }, quantidade: 1 }
+                  ],
+                  endereco: {
+                    rua: 'Rua das Acácias',
+                    numero: '456',
+                    bairro: 'Jardins',
+                    cidade: 'São Paulo',
+                    estado: 'SP'
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ========== RESUMO ========== */}
       <section className="mb-12">
         <div className="bg-primary-50 border-l-4 border-primary-600 p-6 rounded">
@@ -421,6 +588,54 @@ export default function TestComponents() {
           <p className="text-primary-800 mt-2">
             Pressione F12 para abrir o Console e verificar se não há erros.
           </p>
+        </div>
+      </section>
+
+      {/* ========== SEÇÃO 8: TESTE DE FLUXO COMPLETO ========== */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">8️⃣ Teste de Fluxo Completo</h2>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-sm text-gray-600 mb-4">
+            Teste do fluxo completo do checkout:
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Problemas Resolvidos:</h3>
+              <ul className="list-disc list-inside text-sm text-green-700 space-y-1">
+                <li>Modal de sucesso agora exibe corretamente</li>
+                <li>Checkout finaliza pedido com sucesso</li>
+                <li>Página de detalhes do pedido criada</li>
+                <li>Rota /pedido/:id configurada</li>
+                <li>Cálculos de preço corrigidos</li>
+                <li>Funções mock atualizadas</li>
+              </ul>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">🔄 Fluxo Testado:</h3>
+              <ol className="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                <li>Adicionar produtos ao carrinho</li>
+                <li>Acessar página de checkout</li>
+                <li>Preencher endereço de entrega</li>
+                <li>Selecionar forma de pagamento</li>
+                <li>Clicar em "Confirmar Pedido"</li>
+                <li>Modal de sucesso exibido</li>
+                <li>Redirecionado para página de detalhes</li>
+                <li>Informações do pedido exibidas corretamente</li>
+              </ol>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-amber-800 mb-2">📋 Próximos Passos:</h3>
+              <ul className="list-disc list-inside text-sm text-amber-700 space-y-1">
+                <li>Testar com USE_MOCK = false (API real)</li>
+                <li>Implementar integração de pagamento real</li>
+                <li>Adicionar notificações por email</li>
+                <li>Implementar webhook de pagamento</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
     </div>

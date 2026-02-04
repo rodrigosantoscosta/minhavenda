@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/common/Toast'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
+import logger from '../utils/logger'
 import { 
   FiUser, 
   FiMail, 
@@ -111,7 +112,7 @@ export default function Profile() {
       toast.success('Perfil atualizado com sucesso!')
       setIsEditing(false)
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error)
+      logger.error('Erro ao atualizar perfil', { error: error.message })
       toast.error('Erro ao atualizar perfil. Tente novamente.')
     } finally {
       setLoading(false)
@@ -156,7 +157,7 @@ export default function Profile() {
           toast.error('CEP não encontrado')
         }
       } catch (error) {
-        console.error('Erro ao buscar CEP:', error)
+        logger.error('Erro ao buscar CEP', { error: error.message, cep })
         toast.error('Erro ao buscar CEP')
       }
     }
@@ -227,7 +228,7 @@ export default function Profile() {
                   onChange={handleChange}
                   disabled={!isEditing}
                   error={errors.nome}
-                  icon={<FiUser />}
+                  leftIcon={<FiUser />}
                 />
               </div>
 
@@ -243,7 +244,7 @@ export default function Profile() {
                   onChange={handleChange}
                   disabled={!isEditing}
                   error={errors.email}
-                  icon={<FiMail />}
+                  leftIcon={<FiMail />}
                 />
               </div>
 
@@ -259,7 +260,7 @@ export default function Profile() {
                   value={formData.telefone}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  icon={<FiPhone />}
+                  leftIcon={<FiPhone />}
                 />
               </div>
 
@@ -274,7 +275,7 @@ export default function Profile() {
                   value={formData.cpf}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  icon={<FiShield />}
+                  leftIcon={<FiShield />}
                 />
               </div>
             </div>

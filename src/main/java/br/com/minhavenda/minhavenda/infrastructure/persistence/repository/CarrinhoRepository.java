@@ -10,7 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Repository para Carrinho.
+ * Repositório para gerenciamento de Carrinho.
+ *
+ * Provê acesso aos dados de carrinhos no banco de dados.
  */
 @Repository
 public interface CarrinhoRepository extends JpaRepository<Carrinho, UUID> {
@@ -18,9 +20,23 @@ public interface CarrinhoRepository extends JpaRepository<Carrinho, UUID> {
     /**
      * Busca carrinho do usuário com status específico.
      *
-     * @param usuario usuário
-     * @param status status do carrinho
-     * @return carrinho se encontrado
+     * Método preferencial para uso no sistema.
+     * Usado por PedidoService e outros serviços.
+     *
+     * @param usuario usuário dono do carrinho
+     * @param status status do carrinho (ATIVO, FINALIZADO, etc.)
+     * @return Optional contendo o carrinho, ou empty se não encontrado
      */
     Optional<Carrinho> findByUsuarioAndStatus(Usuario usuario, StatusCarrinho status);
+
+    /**
+     * Busca carrinho do usuário com status específico usando ID do usuário.
+     *
+     * Método alternativo para casos onde só temos o ID do usuário.
+     *
+     * @param usuarioId ID do usuário
+     * @param status status do carrinho
+     * @return Optional contendo o carrinho, ou empty se não encontrado
+     */
+    Optional<Carrinho> findByUsuarioIdAndStatus(UUID usuarioId, StatusCarrinho status);
 }

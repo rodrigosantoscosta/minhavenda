@@ -3,6 +3,7 @@ package br.com.minhavenda.minhavenda.application.service;
 import br.com.minhavenda.minhavenda.application.dto.pedido.CheckoutRequest;
 import br.com.minhavenda.minhavenda.application.dto.pedido.PedidoDTO;
 import br.com.minhavenda.minhavenda.application.dto.pedido.PedidoDetalhadoDTO;
+import br.com.minhavenda.minhavenda.application.event.DomainEventPublisher;
 import br.com.minhavenda.minhavenda.application.mapper.PedidoMapper;
 import br.com.minhavenda.minhavenda.domain.entity.*;
 import br.com.minhavenda.minhavenda.domain.enums.StatusCarrinho;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
  * - Listar pedidos do usuário
  * - Buscar pedido específico
  * - Gerenciar status do pedido (pagar, enviar, entregar, cancelar)
+ * - Publicar domain events após operações
  * - Validações de negócio
  */
 @Service
@@ -38,6 +40,7 @@ public class PedidoService {
     private final UsuarioRepository usuarioRepository;
     private final ProdutoRepository produtoRepository;
     private final PedidoMapper pedidoMapper;
+    private final DomainEventPublisher eventPublisher;
 
     /**
      * Finaliza o checkout convertendo o carrinho em pedido.
@@ -48,8 +51,11 @@ public class PedidoService {
      * 3. Valida estoque de todos os produtos
      * 4. Cria pedido com status CRIADO
      * 5. Copia itens do carrinho para o pedido (snapshot)
-     * 6. Finaliza carrinho (status FINALIZADO)
-     * 7. Salva pedido
+     * 6. Salva pedido (gera ID)
+     * 7. Registra evento de criação
+     * 8. Atualiza estoque dos produtos (decrementa quantidade)
+     * 9. Finaliza carrinho (status FINALIZADO)
+     * 10. Publica eventos de domínio
      *
      * @param email email do usuário (do token JWT)
      * @param request dados do checkout (endereço, observações)
@@ -74,14 +80,15 @@ public class PedidoService {
         validarEstoqueProdutos(carrinho);
 
         // 5. Criar pedido
-        Pedido pedido = Pedido.builder()
-                .usuario(usuario)
-                .status(StatusPedido.CRIADO)
-                .enderecoEntrega(request.getEnderecoEntrega())
-                .observacoes(request.getObservacoes())
-                .valorFrete(BigDecimal.ZERO)
-                .valorDesconto(BigDecimal.ZERO)
-                .build();
+        Pedido pedido = new Pedido(
+                usuario,
+                carrinho.getValorTotal(),
+                BigDecimal.ZERO, // frete
+                BigDecimal.ZERO, // desconto
+                carrinho.getValorTotal(), // total inicial
+                request.getEnderecoEntrega(),
+                request.getObservacoes()
+        );
 
         // 6. Copiar itens do carrinho para o pedido (snapshot)
         for (ItemCarrinho itemCarrinho : carrinho.getItens()) {
@@ -95,13 +102,20 @@ public class PedidoService {
             pedido.adicionarItem(itemPedido);
         }
 
-        // 7. Calcular valores totais
-        pedido.calcularValorTotal();
-
-        // 8. Salvar pedido
+        // 7. Salvar pedido (gera ID)
         pedido = pedidoRepository.save(pedido);
 
-        // 9. Finalizar carrinho (não deletar, manter histórico)
+        // 8. REGISTRAR EVENTO DE CRIAÇÃO (agora que temos o ID)
+        pedido.registrarCriacao();
+
+        // 9. Atualizar estoque dos produtos
+        for (ItemCarrinho itemCarrinho : carrinho.getItens()) {
+            Produto produto = itemCarrinho.getProduto();
+            produto.removerEstoque(itemCarrinho.getQuantidade());
+            produtoRepository.save(produto);
+        }
+
+        // 10. Finalizar carrinho (não deletar, manter histórico)
         carrinho.finalizar();
         carrinhoRepository.save(carrinho);
 
@@ -110,6 +124,10 @@ public class PedidoService {
                 usuario.getEmail(),
                 pedido.getValorTotal(),
                 pedido.getItens().size());
+
+        // 11.  PUBLICAR EVENTOS
+        eventPublisher.publishAll(pedido.getDomainEvents());
+        pedido.limparEventos();
 
         return pedidoMapper.toDTO(pedido);
     }
@@ -168,12 +186,16 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findByIdAndUsuario(pedidoId, usuario)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-        // Valida e atualiza status
+        // Valida e atualiza status (emite evento internamente)
         pedido.marcarComoPago();
 
         pedido = pedidoRepository.save(pedido);
 
         log.info("Pedido pago: ID={}, Usuario={}", pedidoId, email);
+
+        // PUBLICAR EVENTOS
+        eventPublisher.publishAll(pedido.getDomainEvents());
+        pedido.limparEventos();
 
         return pedidoMapper.toDTO(pedido);
     }
@@ -193,12 +215,16 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findByIdAndUsuario(pedidoId, usuario)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-        // Valida e cancela
+        // Valida e cancela (emite evento internamente)
         pedido.cancelar();
 
         pedido = pedidoRepository.save(pedido);
 
         log.info("Pedido cancelado: ID={}, Usuario={}", pedidoId, email);
+
+        // PUBLICAR EVENTOS
+        eventPublisher.publishAll(pedido.getDomainEvents());
+        pedido.limparEventos();
 
         return pedidoMapper.toDTO(pedido);
     }
@@ -216,11 +242,16 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
+        // Emite evento internamente
         pedido.marcarComoEnviado();
 
         pedido = pedidoRepository.save(pedido);
 
         log.info("Pedido enviado: ID={}", pedidoId);
+
+        // PUBLICAR EVENTOS
+        eventPublisher.publishAll(pedido.getDomainEvents());
+        pedido.limparEventos();
 
         return pedidoMapper.toDTO(pedido);
     }
@@ -241,6 +272,9 @@ public class PedidoService {
         pedido = pedidoRepository.save(pedido);
 
         log.info("Pedido entregue: ID={}", pedidoId);
+
+        // Sem eventos para entrega (por enquanto)
+        // Se adicionar PedidoEntregueEvent, publicar aqui
 
         return pedidoMapper.toDTO(pedido);
     }

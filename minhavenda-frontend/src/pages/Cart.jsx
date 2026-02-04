@@ -17,7 +17,7 @@ import {
 export default function Cart() {
   const navigate = useNavigate()
   const {
-    items,
+    items: cartItems,
     removeItem,
     updateQuantity,
     clearCart,
@@ -26,6 +26,26 @@ export default function Cart() {
     getTotalDiscount,
     getTotal
   } = useCart()
+
+  // Garantir que items seja sempre um array
+  const items = Array.isArray(cartItems) ? cartItems : []
+
+  // Função auxiliar para extrair valor do preço (objeto ou número)
+  const getPrecoValue = (preco) => {
+    if (typeof preco === 'object' && preco !== null) {
+      return preco.valor || 0
+    }
+    return preco || 0
+  }
+
+  // Função segura para formatar valores
+  const formatarValor = (valor) => {
+    const preco = getPrecoValue(valor)
+    if (typeof preco !== 'number' || isNaN(preco)) {
+      return 'R$ 0,00'
+    }
+    return `R$ ${preco.toFixed(2)}`
+  }
 
   // Calcular frete (simulado)
   const calcularFrete = () => {
@@ -137,11 +157,11 @@ export default function Cart() {
                   {/* Imagem */}
                   <div className="flex-shrink-0">
                     <img
-                      src={item.imagem || 'https://via.placeholder.com/100'}
+                      src={item.imagem || 'https://placehold.co/600x400/transparent/F00'}
                       alt={item.nome}
                       className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/100?text=Sem+Imagem'
+                        e.target.src = 'https://placehold.co/600x400/transparent/F00'
                       }}
                     />
                   </div>
@@ -161,23 +181,27 @@ export default function Cart() {
 
                     {/* Preços */}
                     <div className="mb-4">
-                      {item.precoOriginal > item.preco ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500 line-through">
-                            R$ {item.precoOriginal.toFixed(2)}
-                          </span>
-                          <span className="text-lg font-bold text-primary-600">
-                            R$ {item.preco.toFixed(2)}
-                          </span>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                            {Math.round(((item.precoOriginal - item.preco) / item.precoOriginal) * 100)}% OFF
-                          </span>
+                      {(() => {
+                        const precoOriginal = getPrecoValue(item.precoOriginal)
+                        const preco = getPrecoValue(item.preco)
+                        return precoOriginal > preco ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 line-through">
+                              {formatarValor(precoOriginal)}
+                            </span>
+                            <span className="text-lg font-bold text-primary-600">
+                              {formatarValor(preco)}
+                            </span>
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                              {Math.round(((precoOriginal - preco) / precoOriginal) * 100)}% OFF
+                            </span>
                         </div>
                       ) : (
                         <span className="text-lg font-bold text-gray-900">
-                          R$ {item.preco.toFixed(2)}
+                          {formatarValor(preco)}
                         </span>
                       )}
+                      )()}
                     </div>
 
                     {/* Controles */}
@@ -226,7 +250,7 @@ export default function Cart() {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Subtotal:</span>
                         <span className="text-lg font-bold text-gray-900">
-                          R$ {(item.preco * item.quantidade).toFixed(2)}
+                          {formatarValor(getPrecoValue(item.preco) * item.quantidade)}
                         </span>
                       </div>
                     </div>
@@ -250,7 +274,7 @@ export default function Cart() {
                 {/* Subtotal */}
                 <div className="flex justify-between text-gray-700">
                   <span>Subtotal ({getTotalItems()} itens)</span>
-                  <span>R$ {subtotal.toFixed(2)}</span>
+                  <span>{formatarValor(subtotal)}</span>
                 </div>
 
                 {/* Desconto */}
@@ -260,7 +284,7 @@ export default function Cart() {
                       <FiTag size={16} />
                       Desconto
                     </span>
-                    <span>- R$ {desconto.toFixed(2)}</span>
+                    <span>- {formatarValor(desconto)}</span>
                   </div>
                 )}
 
@@ -274,7 +298,7 @@ export default function Cart() {
                     {frete === 0 ? (
                       <span className="text-green-600 font-medium">Grátis</span>
                     ) : (
-                      `R$ ${frete.toFixed(2)}`
+                      formatarValor(frete)
                     )}
                   </span>
                 </div>
@@ -283,7 +307,7 @@ export default function Cart() {
                 {frete > 0 && subtotal < 200 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-sm text-blue-800">
-                      Faltam <strong>R$ {(200 - subtotal).toFixed(2)}</strong> para frete grátis!
+                      Faltam <strong>{formatarValor(200 - subtotal)}</strong> para frete grátis!
                     </p>
                   </div>
                 )}
@@ -294,7 +318,7 @@ export default function Cart() {
                 {/* Total */}
                 <div className="flex justify-between text-lg font-bold text-gray-900">
                   <span>Total</span>
-                  <span className="text-primary-600">R$ {total.toFixed(2)}</span>
+                  <span className="text-primary-600">{formatarValor(total)}</span>
                 </div>
               </div>
 
@@ -304,9 +328,10 @@ export default function Cart() {
                   onClick={handleCheckout}
                   className="w-full"
                   size="lg"
+                  disabled={items.length === 0}
                 >
                   <FiLock className="mr-2" />
-                  Finalizar Compra
+                  Finalizar Compra ({items.length} {items.length === 1 ? 'item' : 'itens'})
                 </Button>
 
                 <Button 

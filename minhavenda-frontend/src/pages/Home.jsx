@@ -11,6 +11,7 @@ import Pagination from '../components/common/Pagination'
 import Loading from '../components/common/Loading'
 import EmptyState from '../components/common/EmptyState'
 import Button from '../components/common/Button'
+import logger from '../utils/logger'
 
 
 import { 
@@ -51,14 +52,14 @@ export default function Home() {
   const loadInitialData = async () => {
     try {
       setLoading(true)
-      console.log('🔄 Carregando dados iniciais...')
+      logger.info('Carregando dados iniciais')
       
       await Promise.all([
         loadCategorias(),
         loadProdutos(),
       ])
     } catch (error) {
-      console.error('❌ Erro ao carregar dados iniciais:', error)
+      logger.error({ error }, 'Erro ao carregar dados iniciais')
     } finally {
       setLoading(false)
     }
@@ -66,19 +67,19 @@ export default function Home() {
 
   const loadCategorias = async () => {
     try {
-      console.log('📂 Buscando categorias...')
+      logger.info('Buscando categorias')
       const data = await productService.getCategorias()
-      console.log('✅ Categorias recebidas:', data)
+      logger.debug({ data }, 'Categorias recebidas')
       
       // Verifica se é array
       if (Array.isArray(data)) {
         setCategorias(data)
       } else {
-        console.warn('⚠️ Categorias não é um array:', data)
+        logger.warn({ data }, 'Categorias não é um array')
         setCategorias([])
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar categorias:', error)
+      logger.error({ error }, 'Erro ao carregar categorias')
       setCategorias([])
     }
   }
@@ -102,50 +103,46 @@ export default function Home() {
         params.categoriaId = selectedCategory
       }
 
-      console.log('📦 Buscando produtos com params:', params)
+      logger.info({ params }, 'Buscando produtos')
       const data = await productService.getProdutos(params)
-      console.log('✅ Resposta completa do backend:', data)
+      logger.debug({ data }, 'Resposta completa do backend')
 
       // TRATAMENTO CORRETO DOS DADOS
       let produtosArray = []
       
       // Cenário 1: Resposta paginada (Spring Page)
       if (data && data.content && Array.isArray(data.content)) {
-        console.log('📄 Resposta paginada detectada')
+        logger.info('Resposta paginada detectada')
         produtosArray = data.content
         setTotalPages(data.totalPages || 0)
         setTotalElements(data.totalElements || 0)
       }
       // Cenário 2: Array direto
       else if (Array.isArray(data)) {
-        console.log('📋 Array direto detectado')
+        logger.info('Array direto detectado')
         produtosArray = data
         setTotalPages(1)
         setTotalElements(data.length)
       }
       // Cenário 3: Objeto com produtos
       else if (data && data.produtos && Array.isArray(data.produtos)) {
-        console.log('📦 Objeto com array de produtos detectado')
+        logger.info('Objeto com array de produtos detectado')
         produtosArray = data.produtos
         setTotalPages(data.totalPages || 1)
         setTotalElements(data.total || data.produtos.length)
       }
       else {
-        console.warn('⚠️ Formato de resposta desconhecido:', data)
+        logger.warn({ data }, 'Formato de resposta desconhecido')
         produtosArray = []
       }
 
-      console.log('✅ Produtos processados:', produtosArray.length, 'itens')
-      console.log('📊 Dados de paginação:', {
-        totalPages,
-        totalElements,
-        currentPage: page
-      })
+      logger.info({ itemCount: produtosArray.length }, 'Produtos processados')
+      logger.debug({ totalPages, totalElements, currentPage: page }, 'Dados de paginação')
 
       setProdutos(produtosArray)
       
     } catch (error) {
-      console.error('❌ Erro ao carregar produtos:', error)
+      logger.error({ error }, 'Erro ao carregar produtos')
       setProdutos([])
     } finally {
       setLoading(false)
@@ -154,18 +151,18 @@ export default function Home() {
   }
 
   const handleAddToCart = (produto) => {
-    console.log('🛒 Adicionando ao carrinho:', produto)
+    logger.info({ produtoId: produto.id, nome: produto.nome }, 'Adicionando ao carrinho')
     addItem(produto, 1)
   }
 
   const handleCategoryChange = (categoryId) => {
-    console.log('🔄 Mudando categoria para:', categoryId)
+    logger.info({ categoryId }, 'Mudando categoria')
     setSelectedCategory(categoryId)
     setPage(0) // Reset para primeira página
   }
 
   const handlePageChange = (newPage) => {
-    console.log('📄 Mudando para página:', newPage)
+    logger.info({ newPage }, 'Mudando página')
     setPage(newPage - 1) // Converter para 0-indexed
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -174,7 +171,7 @@ export default function Home() {
     return <Loading />
   }
 
-  console.log('🎨 Renderizando Home com:', produtos.length, 'produtos')
+  logger.debug({ produtosCount: produtos.length }, 'Renderizando Home')
 
   return (
     <div className="bg-gray-50">
@@ -290,7 +287,7 @@ export default function Home() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700">
+      {/* <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Não encontrou o que procura?
@@ -306,7 +303,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   )
 }

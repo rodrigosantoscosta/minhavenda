@@ -1,374 +1,372 @@
-# 🛒 MinhaVenda E-Commerce
+# MinhaVenda - E-commerce Platform
 
-Sistema de E-Commerce desenvolvido com **Clean Architecture**, **DDD** e **Spring Boot**.
+Sistema de e-commerce completo desenvolvido com foco em Clean Architecture e  Domain-Driven Design.
 
 ---
 
-## 🚀 Tecnologias
+
+## Deploy em Produção
+
+- **Frontend**: https://minhavenda-frontend.vercel.app
+- **Backend API**: https://minhavenda-production.up.railway.app/api
+
+## Stack 
 
 ### Backend
-- **Java 17**
-- **Spring Boot 3.2.1**
-- **Spring Data JPA**
-- **Spring Security**
-- **Maven 3.8+**
+- **Java 17** - 
+- **Spring Boot 3.2.1** - Framework enterprise para microsserviços
+- **Spring Security** - Autenticação e autorização com JWT
+- **Spring Data JPA** - Persistência de dados com Hibernate para desenvolvimento
+- **PostgreSQL** - Banco de dados relacional em produção
+- **Flyway** - Versionamento de banco de dados
+- **SpringDoc OpenAPI** - Documentação automática da API
 
-### Banco de Dados
-- **PostgreSQL** (Produção)
-- **H2** (Desenvolvimento/Testes)
+### Frontend
+- **React 19** - Biblioteca com React Server Components
+- **Vite** - Build tool  com HMR
+- **Tailwind CSS** - Framework CSS utility-first
+- **React Router v7** - Roteamento client-side
+- **React Hook Form** - Formulários performáticos
+- **Context API** - Gerenciamento de estado global
+- **Axios** - Cliente HTTP para requisições
 
-### Documentação
-- **SpringDoc OpenAPI** (Swagger)
-
-### Ferramentas
-- **Lombok** (Redução de boilerplate)
-- **MapStruct** (Mapeamento DTO ↔ Entity)
-- **Docker & Docker Compose**
-
----
-
-## 📋 Pré-requisitos
-
-- **Java 17+**
-- **Maven 3.8+**
-- **Docker & Docker Compose** (opcional)
-- **Git**
-- **IDE**: IntelliJ IDEA (recomendado) ou VS Code
+### Ferramentas e infraestrutura
+- **Lombok** - Redução de boilerplate
+- **MapStruct** - Mapeamento entre Entity e DTO
+- **Maven** - Gerenciamento de dependências
+- **Vercel** - Hosting frontend com CDN global
+- **Railway** - Backend-as-a-Service com PostgreSQL
 
 ---
 
-## 🐳 Quick Start
-
-### 1. Clone o repositório
-```bash
-git clone https://github.com/seu-usuario/minhavenda.git
-cd minhavenda
-```
-
-### 2. Configure o ambiente (Opcional - para PostgreSQL)
-```bash
-cp .env.example .env
-# Edite .env com suas credenciais
-```
-
-### 3. Execute com H2 (Desenvolvimento)
-```bash
-# Banco em memória - mais rápido para começar
-mvn spring-boot:run
-```
-
-### 4. Acesse a aplicação
-- **API**: http://localhost:8080
-- **Swagger**: http://localhost:8080/api/swagger-ui.html
-
-
----
-
-## 🏗️ Arquitetura
-
-Este projeto segue os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**.
-
-### 📐 Camadas
+## Arquitetura
 
 ```
-┌─────────────────────────────────────────┐
-│         Presentation Layer              │
-│         (Controllers REST)              │
-└──────────────┬──────────────────────────┘
-               │
-┌──────────────▼──────────────────────────┐
-│         Application Layer               │
-│    (Use Cases / Casos de Uso)          │
-│         (DTOs / Mappers)                │
-└──────────────┬──────────────────────────┘
-               │
-┌──────────────▼──────────────────────────┐
-│          Domain Layer                   │
-│   (Entities / Value Objects)           │
-│      (Regras de Negócio)                │
-└──────────────┬──────────────────────────┘
-               │
-┌──────────────▼──────────────────────────┐
-│      Infrastructure Layer               │
-│   (Repositories / Database)             │
-│      (Implementações)                    │
-└─────────────────────────────────────────┘
+                     ┌─────────────────────────────────────┐
+                     │         Presentation Layer          │
+                     │        (Controllers REST)           │
+                     └─────────────────────────────────────┘
+                                      ↓
+                     ┌─────────────────────────────────────┐
+                     │         Application Layer           │
+                     │   (Use Cases / DTOs / Mappers)      │
+                     └─────────────────────────────────────┘
+                                      ↓
+                     ┌─────────────────────────────────────┐
+                     │            Domain Layer             │
+                     │  (Entities / Value Objects / Regras)│
+                     └─────────────────────────────────────┘
+                                      ↓
+                     ┌─────────────────────────────────────┐
+                     │        Infrastructure Layer         │
+                     │   (Repositories / Database / Impl.) │
+                     └─────────────────────────────────────┘
 ```
-
-### 📂 Estrutura de Diretórios
+### Organização dos Pacotes
 
 ```
 src/main/java/br/com/minhavenda/minhavenda/
 │
-├── 📱 presentation/                    # Camada de Apresentação
-│   └── controller/                     # Controllers REST
-│       └── ProdutoController.java      # Endpoints de Produtos
+├── presentation/                          # Camada de Apresentação
+│   └── controller/                        # Controllers REST
+│       ├── ProdutoController.java
+│       ├── PedidoController.java
+│       ├── UsuarioController.java
+│       └── AuthenticationController.java
 │
-├── 🎯 application/                     # Camada de Aplicação
-│   ├── dto/                            # Data Transfer Objects
+├── application/                           # Camada de Aplicação
+│   ├── dto/                              # Data Transfer Objects
 │   │   ├── ProdutoDTO.java
-│   │   └── CriarProdutoRequest.java
+│   │   ├── PedidoDTO.java
+│   │   └── AuthenticationResponse.java
 │   │
-│   ├── mapper/                         # Conversores Entity ↔ DTO
-│   │   └── ProdutoMapper.java
+│   ├── mapper/                           # Conversores Entity ↔ DTO
+│   │   ├── ProdutoMapper.java
+│   │   └── PedidoMapper.java
 │   │
-│   └── usecase/                        # Casos de Uso (Lógica Aplicação)
-│       ├── ListarProdutosUseCase.java
-│       ├── BuscarProdutoPorIdUseCase.java
-│       └── CriarProdutoUseCase.java
+│   └── usecase/                          # Casos de Uso
+│       ├── produto/                      # Use Cases de Produtos
+│       ├── pedido/                       # Use Cases de Pedidos
+│       ├── usuario/                      # Use Cases de Usuários
+│       └── auth/                         # Use Cases de Autenticação
 │
-├── 🏛️ domain/                          # Camada de Domínio
-│   ├── entity/                         # Entidades JPA
+├── domain/                               # Camada de Domínio
+│   ├── entity/                          # Entidades de Negócio
 │   │   ├── Produto.java
-│   │   ├── Categoria.java
-│   │   ├── Usuario.java
 │   │   ├── Pedido.java
-│   │   └── ...
+│   │   ├── Usuario.java
+│   │   ├── Carrinho.java
+│   │   ├── Categoria.java
+│   │   └── Estoque.java
 │   │
-│   └── valueobject/                    # Value Objects
-│       └── Money.java (futuro)
+│   ├── valueobject/                     # Value Objects
+│   │   ├── Money.java
+│   │   └── Email.java
+│   │
+│   └── enums/                           # Enums do Domínio
+│       ├── StatusPedido.java
+│       ├── TipoUsuario.java
+│       └── StatusCarrinho.java
 │
-├── 🔧 infrastructure/                  # Camada de Infraestrutura
-│   └── persistence/
-│       └── repository/                 # Repositories (Acesso DB)
-│           ├── ProdutoRepository.java
-│           └── CategoriaRepository.java
+├── infrastructure/                       # Camada de Infraestrutura
+│   ├── persistence/
+│   │   ├── repository/                  # Interfaces Repository
+│   │   └── specification/               # Critérios de Busca
+│   │
+│   └── security/                        # Configurações de Segurança
+│       ├── JwtService.java
+│       ├── JwtAuthenticationFilter.java
+│       └── CustomUserDetailsService.java
 │
-└── ⚙️ config/                          # Configurações
-    └── SecurityConfig.java             # Spring Security
+└── config/                              # Configurações Globais
+    ├── SecurityConfig.java
+    ├── GlobalExceptionHandler.java
+    └── OpenApiConfig.java
 ```
 
 ---
 
-## 📊 Modelo de Dados
+## Funcionalidades Implementadas
 
-### Entidades Principais
+### Core Business
+- **Catálogo de Produtos**: Listagem, busca avançada e filtros dinâmicos
+- **Gestão de Usuários**: Registro, autenticação e perfil
+- **Carrinho de Compras**: Gerenciamento persistente de itens
+- **Processo de Checkout**: Completo com cálculo de frete
+- **Gestão de Pedidos**: Criação, acompanhamento e histórico
+- **Controle de Estoque**: Atualização em tempo real
+- **Sistema de Categorias**: Organização hierárquica
 
+### Features Técnicas
+- **Autenticação JWT**: Stateless com refresh tokens
+- **Autorização RBAC**: Role-based access control (ADMIN/CLIENTE)
+- **Documentação API**: Swagger/OpenAPI 3.0 automática
+- **Validações**: Jakarta Validation em todas as camadas
+- **Monitoramento**: Spring Actuator + métricas Prometheus
+- **Tratamento de Erros**: Global exception handler
+- **Versionamento API**: Controle de versão por URL
+
+---
+
+## Como Rodar Localmente
+
+### Pré-requisitos
+- Java 17+
+- Node.js 18+
+- PostgreSQL 14+ (opcional, H2 disponível)
+- Maven 3.8+
+
+### Backend Setup
+
+1. **Clone o repositório**
+```bash
+git clone https://github.com/rodrigosantoscosta/minhavenda.git
+cd minhavenda
 ```
-┌─────────────┐       ┌──────────────┐
-│  Categoria  │◄──────│   Produto    │
-└─────────────┘ 1   N └──────────────┘
-                             │
-                             │ N
-                             │
-                      ┌──────▼──────┐
-                      │  ItemPedido │
-                      └──────┬──────┘
-                             │ N
-                             │
-                      ┌──────▼──────┐
-                      │    Pedido   │
-                      └──────┬──────┘
-                             │ N
-                             │
-                      ┌──────▼──────┐
-                      │   Usuario   │
-                      └─────────────┘
+
+2. **Configure o ambiente**
+```bash
+# Para desenvolvimento com H2 (recomendado)
+mvn spring-boot:run
+
+# Para PostgreSQL
+cp .env.example .env
+# Configure suas credenciais no .env
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+3. **Acesse os serviços**
+- **API**: http://localhost:8080/api
+- **Swagger UI**: http://localhost:8080/api/swagger-ui.html
+- **H2 Console**: http://localhost:8080/h2-console (dev)
+
+### Frontend Setup
+
+1. **Navegue para o diretório frontend**
+```bash
+cd minhavenda-frontend
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Configure as variáveis de ambiente**
+```bash
+cp .env.example .env
+# Configure a URL da API backend
+```
+
+4. **Inicie o servidor de desenvolvimento**
+```bash
+npm run dev
+```
+
+5. **Acesse a aplicação**
+- **Frontend**: http://localhost:5173
+- **Build para produção**: `npm run build`
+
+### Docker Setup (Opcional)
+```bash
+# Inicie PostgreSQL 
+docker-compose up -d
+
+# Para desenvolvimento completo
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
 ---
 
-## 🔌 Endpoints Disponíveis
+## Documentação da API
 
-### 📦 Produtos
+### Endpoints Principais
 
-| Método | Endpoint                  | Descrição                        |
-|--------|---------------------------|----------------------------------|
-| GET    | `/produtos`               | Lista produtos ativos            |
-| GET    | `/produtos/paginado`      | Lista com paginação              |
-| GET    | `/produtos/{id}`          | Busca produto por ID             |
-| GET    | `/produtos/todos`         | Lista todos (ativos + inativos)  |
-| POST   | `/produtos`               | Cria novo produto                |
+#### Autenticação
+- `POST /api/auth/login` - Login de usuário
+- `POST /api/auth/register` - Registro de novo usuário
+- `POST /api/auth/refresh` - Refresh token JWT
 
-### 🔍 Exemplos de Uso
+#### Produtos
+- `GET /api/produtos` - Listar produtos com paginação
+- `GET /api/produtos/{id}` - Buscar produto por ID
+- `GET /api/produtos/buscar` - Busca com filtros avançados
+- `POST /api/produtos` - Criar novo produto (admin)
 
-**Listar produtos:**
-```bash
-GET http://localhost:8080/produtos
-```
+#### Pedidos
+- `GET /api/pedidos` - Listar pedidos do usuário
+- `GET /api/pedidos/{id}` - Detalhes do pedido
+- `POST /api/pedidos/checkout` - Finalizar pedido
+- `PATCH /api/pedidos/{id}/status` - Atualizar status
 
-**Listar com paginação:**
-```bash
-GET http://localhost:8080/produtos/paginado?page=0&size=20&sort=preco&direction=asc
-```
-
-**Buscar por ID:**
-```bash
-GET http://localhost:8080/produtos/550e8400-e29b-41d4-a716-446655440001
-```
-
-**Criar produto:**
-```bash
-POST http://localhost:8080/produtos
-Content-Type: application/json
-
-{
-  "nome": "Notebook Dell",
-  "descricao": "Core i7, 16GB RAM",
-  "preco": 3500.00,
-  "categoriaId": 1,
-  "ativo": true
-}
-```
+### Documentação Completa
+Acesse a documentação interativa: http://localhost:8080/api/swagger-ui.html
 
 ---
 
-## 📚 Documentação API
+## Banco de Dados
 
-### Swagger UI
-Acesse a documentação interativa completa:
+### Schema Principal
+- **usuarios**: Gestão de usuários e roles
+- **categorias**: Categorias de produtos
+- **produtos**: Catálogo de produtos com atributos
+- **estoques**: Controle de quantidade por produto
+- **carrinhos**: Carrinhos de compra dos usuários
+- **itens_carrinho**: Items nos carrinhos
+- **pedidos**: Pedidos realizados
+- **itens_pedido**: Composição dos pedidos
+- **pagamentos**: Informações de pagamento
+- **entregas**: Dados de entrega
+- **notificacoes**: Sistema de notificações
 
-```
-http://localhost:8080/api/swagger-ui.html
-```
-
-### OpenAPI JSON
-```
-http://localhost:8080/api-docs
-```
-
----
-
-## 🧪 Testes
-
-### Executar testes
-```bash
-# Testes unitários
-mvn test
-
-# Testes de integração
-mvn verify
-
-# Ver cobertura
-mvn jacoco:report
-```
-
-### Testar com Insomnia/Postman
-
-1. Importe a collection: `minhavenda-export-ATUALIZADO.json`
-2. Configure base URL: `http://localhost:8080`
-3. Execute os requests
+### Migrations
+Versionamento automático com Flyway:
+- `V1__create_tables.sql` - Estrutura base
+- `V2__create_indexes.sql` - Índices de performance
+- `V3__insert_categorias.sql` - Dados iniciais
+- `V4__insert_usuarios.sql` - Usuários de exemplo
+- `V5__insert_produtos.sql` - Produtos de demonstração
+- `V6__insert_estoques.sql` - Estoques iniciais
 
 ---
 
-## 📦 Build & Deploy
+## Padrões e práticas
 
-### Compilar
+### Clean Architecture
+- Separação estrita de responsabilidades
+- Dependências apontam para o centro (Domain)
+- Business rules isoladas em entities
+- Use Cases orquestram fluxos de negócio
+
+### Domain-Driven Design
+- Entidades ricas com comportamentos
+- Value Objects para conceitos do domínio
+- Repositories abstraem persistência
+- Domain Events para desacoplamento
+
+### SOLID Principles
+- **S**: Single Responsibility Principle
+- **O**: Open/Closed Principle  
+- **L**: Liskov Substitution Principle
+- **I**: Interface Segregation Principle
+- **D**: Dependency Inversion Principle
+
+### Performance
+- Lazy loading em relações JPA
+- Índices otimizados em tabelas críticas
+- Connection pooling com HikariCP
+- Cache de consultas frequentes
+
+### Segurança
+- JWT com expiração configurável
+- BCrypt para hash de senhas
+- CORS configurado para produção
+- Input validation em todas as camadas
+
+---
+
+## Build e Deploy
+
+### Build Backend
 ```bash
 # Build completo
 mvn clean package
 
-# Pular testes
+# Pular testes (CI/CD)
 mvn clean package -DskipTests
+
+# Docker image
+docker build -t minhavenda-backend .
 ```
 
-### Executar JAR
+### Build Frontend
 ```bash
-java -jar target/minhavenda-1.0.0.jar
+cd minhavenda-frontend
+
+# Development
+npm run dev
+
+# Production build
+npm run build
+
+# Linting
+npm run lint
 ```
+
+### Deploy em Produção
+- **Frontend**: Deploy automático no Vercel via GitHub Actions
+- **Backend**: Railway com PostgreSQL gerenciado
+- **Monitoramento**: Logs centralizados e métricas em tempo real
 
 ---
 
-## 🗄️ Banco de Dados
-
-### PostgreSQL (Produção)
-```bash
-# Conectar
-psql -h localhost -U postgres -d minhavenda
-
-# Ver tabelas
-\dt
-
-# Ver dados
-SELECT * FROM produtos;
-```
-
-### Dados de Teste
-```bash
-# Executar script SQL
-# Via H2 Console: copie e cole dados-teste.sql
-# Via PostgreSQL: psql -f dados-teste.sql
-```
+### Health Checks
+- `/actuator/health` - Status geral
+- `/actuator/health/db` - Conexão com DB
+- `/actuator/health/diskSpace` - Espaço em disco
 
 ---
 
-## 🔐 Segurança
+## Roadmap Futuro
 
-### Configuração Atual
-- **Desenvolvimento**: Autenticação desabilitada (facilitar testes)
-- **Produção**: JWT + Spring Security (implementar futuramente)
+### Correções e melhorias
+- Correções de bugs
+- Melhorias de performance
+- Melhorias de segurança
+- Atualizações em UX e UI
+- Implementação de teste com JUnit
+- Mensageria com RabbitMQ
 
-### Variáveis de Ambiente
-```bash
-# .env
-POSTGRES_PASSWORD=sua-senha
-JWT_SECRET=sua-chave-secreta
-```
-
-⚠️ **NUNCA commite o arquivo `.env`!**
-
+### Features
+- Integração com gateway de pagamento
+- Sistema de avaliações de produtos
+- Sistema de notificações
+- Painel administrativo completo
+- Painel de gestão de estoque
 ---
 
-## 📖 Padrões e Boas Práticas
+## Licença
 
-### Clean Architecture
-- ✅ Separação de responsabilidades por camadas
-- ✅ Dependências apontam para dentro (Domain no centro)
-- ✅ Regras de negócio isoladas na camada Domain
-
-### DDD (Domain-Driven Design)
-- ✅ Entidades ricas com comportamento
-- ✅ Value Objects para conceitos do domínio
-- ✅ Repositories abstraem persistência
-- ✅ Use Cases orquestram operações
-
-### SOLID
-- ✅ **S**ingle Responsibility: Uma classe, uma responsabilidade
-- ✅ **O**pen/Closed: Aberto para extensão, fechado para modificação
-- ✅ **L**iskov Substitution: Subtipos substituíveis
-- ✅ **I**nterface Segregation: Interfaces específicas
-- ✅ **D**ependency Inversion: Dependa de abstrações
+Este projeto está licenciado sob a MIT License.
 
 ---
-
-## 🚧 Roadmap
-
-### ✅ Fase 1 - MVP (Concluído)
-- [x] Estrutura do projeto
-- [x] Entidades JPA
-- [x] Repositories
-- [x] Use Cases básicos
-- [x] Controllers REST
-- [x] Swagger configurado
-- [x] Dados de teste
-
-### 🔄 Fase 2 - Autenticação (Em desenvolvimento)
-- [ ] JWT Authentication
-- [ ] User Registration
-- [ ] Login/Logout
-- [ ] Roles (USER, ADMIN)
-
-### 📅 Fase 3 - Carrinho e Pedidos
-- [ ] Adicionar ao carrinho
-- [ ] Finalizar pedido
-- [ ] Processar pagamento
-- [ ] Histórico de pedidos
-
-### 📅 Fase 4 - Avançado
-- [ ] Busca avançada (Elasticsearch)
-- [ ] Cache (Redis)
-- [ ] Mensageria (RabbitMQ)
-- [ ] Upload de imagens
-- [ ] Integração com gateway de pagamento
-
----
-
-### Padrão de Commits
-```
-feat: nova funcionalidade
-fix: correção de bug
-docs: documentação
-refactor: refatoração
-test: testes
-chore: tarefas gerais
-```

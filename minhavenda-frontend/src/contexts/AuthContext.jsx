@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import authService from '../services/authService'
+import logger from '../utils/logger'
 
 const AuthContext = createContext(null)
 
@@ -8,14 +8,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  
-  const navigate = useNavigate()
 
+  // Verificar autenticação ao montar
   useEffect(() => {
     checkAuth()
   }, [])
 
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     try {
       const token = authService.getToken()
       const savedUser = authService.getCurrentUser()
@@ -23,123 +22,135 @@ export function AuthProvider({ children }) {
       if (token && savedUser) {
         setUser(savedUser)
         setIsAuthenticated(true)
-        console.log('✅ Usuário autenticado:', savedUser)
+        logger.info({ userId: savedUser.id, email: savedUser.email }, 'User authenticated from storage')
+      } else {
+        logger.debug('No authentication found in storage')
       }
     } catch (error) {
-      console.error('❌ Erro ao verificar autenticação:', error)
+      logger.error({ error }, 'Error checking authentication')
       authService.logout()
+      setUser(null)
+      setIsAuthenticated(false)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const login = async (email, senha) => {
+  const login = useCallback(async (email, senha) => {
     try {
-      console.log('🔄 Tentando login...', { email })
+      logger.info({ email }, 'Attempting login')
       setLoading(true)
       
       const response = await authService.login(email, senha)
-      console.log('📦 Resposta completa do backend:', response)
+      logger.debug({ 
+        hasToken: !!response.token,
+        hasUser: !!response.user,
+        hasNome: !!response.nome 
+      }, 'Login response received')
       
       // Extrair user da resposta
       // Backend pode retornar: { token, user } ou { token, nome, email, ... }
-      let userData = response.user || response
-      
-      console.log('👤 Dados do usuário:', userData)
-      
-      // Se ainda não tiver nome, tentar pegar do próprio response
-      if (!userData.nome && response.nome) {
-        userData = {
-          nome: response.nome,
-          email: response.email,
-          id: response.id,
-          tipo: response.tipo
-        }
+      let userData = response.user || {
+        nome: response.nome,
+        email: response.email,
+        id: response.id,
+        tipo: response.tipo
       }
       
-      // Verificar se tem dados mínimos
+      // Validar dados mínimos
       if (!userData.nome) {
-        console.error('❌ Resposta do backend sem campo "nome":', response)
-        throw new Error('Resposta do servidor inválida')
+        logger.error({ response }, 'Invalid server response - missing "nome" field')
+        throw new Error('Resposta do servidor inválida: dados do usuário incompletos')
       }
       
       setUser(userData)
       setIsAuthenticated(true)
       
-      alert(`Bem-vindo, ${userData.nome}!`)
+      logger.info({ 
+        userId: userData.id, 
+        email: userData.email,
+        tipo: userData.tipo 
+      }, 'Login successful')
       
-      setTimeout(() => {
-        navigate('/')
-      }, 100)
-      
-      return { success: true }
+      return { 
+        success: true, 
+        user: userData,
+        message: `Bem-vindo, ${userData.nome}!`
+      }
     } catch (error) {
-      console.error('❌ Erro completo no login:', error)
+      logger.error({ 
+        error,
+        status: error.response?.status,
+        data: error.response?.data 
+      }, 'Login failed')
       
       let message = 'Erro ao fazer login'
       
       if (error.response) {
         // Erro da API
-        console.log('Response error:', error.response)
         message = error.response.data?.message || 
                  error.response.data?.error ||
                  `Erro ${error.response.status}: ${error.response.statusText}`
       } else if (error.request) {
         // Requisição enviada mas sem resposta
-        console.log('Request error:', error.request)
         message = 'Servidor não respondeu. Verifique se o backend está rodando.'
       } else {
         // Erro na configuração da requisição
         message = error.message
       }
       
-      alert(message)
-      
       return { success: false, error: message }
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const register = async (nome, email, senha) => {
+  const register = useCallback(async (nome, email, senha) => {
     try {
-      console.log('🔄 Tentando registrar...', { nome, email })
+      logger.info({ nome, email }, 'Attempting registration')
       setLoading(true)
       
       const response = await authService.register(nome, email, senha)
-      console.log('📦 Resposta completa do backend:', response)
+      logger.debug({ 
+        hasToken: !!response.token,
+        hasUser: !!response.user,
+        hasNome: !!response.nome 
+      }, 'Registration response received')
       
       // Extrair user da resposta
-      let userData = response.user || response
-      
-      console.log('👤 Dados do usuário:', userData)
-      
-      if (!userData.nome && response.nome) {
-        userData = {
-          nome: response.nome,
-          email: response.email,
-          id: response.id,
-          tipo: response.tipo
-        }
+      let userData = response.user || {
+        nome: response.nome,
+        email: response.email,
+        id: response.id,
+        tipo: response.tipo
       }
       
+      // Validar dados mínimos
       if (!userData.nome) {
-        console.error('❌ Resposta do backend sem campo "nome":', response)
-        throw new Error('Resposta do servidor inválida')
+        logger.error({ response }, 'Invalid server response - missing "nome" field')
+        throw new Error('Resposta do servidor inválida: dados do usuário incompletos')
       }
       
       setUser(userData)
       setIsAuthenticated(true)
       
-      alert('Conta criada com sucesso!')
+      logger.info({ 
+        userId: userData.id, 
+        email: userData.email,
+        tipo: userData.tipo 
+      }, 'Registration successful')
       
-      setTimeout(() => {
-        navigate('/')
-      }, 100)
-      
-      return { success: true }
+      return { 
+        success: true, 
+        user: userData,
+        message: 'Conta criada com sucesso!'
+      }
     } catch (error) {
-      console.error('❌ Erro completo no registro:', error)
+      logger.error({ 
+        error,
+        status: error.response?.status,
+        data: error.response?.data 
+      }, 'Registration failed')
       
       let message = 'Erro ao criar conta'
       
@@ -153,28 +164,37 @@ export function AuthProvider({ children }) {
         message = error.message
       }
       
-      alert(message)
-      
       return { success: false, error: message }
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const logout = () => {
-    console.log('🔄 Fazendo logout...')
+  const logout = useCallback(() => {
+    logger.info({ userId: user?.id }, 'User logging out')
+    
     authService.logout()
     setUser(null)
     setIsAuthenticated(false)
-    alert('Você saiu da sua conta')
-    navigate('/login')
-  }
+    
+    logger.info('Logout successful - state cleared')
+    
+    return { success: true, message: 'Você saiu da sua conta' }
+  }, [user])
 
-  const updateUser = (updatedUser) => {
-    console.log('🔄 Atualizando usuário...', updatedUser)
+  const updateUser = useCallback((updatedUser) => {
+    if (!updatedUser) {
+      logger.warn('Attempted to update user with null/undefined value')
+      return
+    }
+    
+    logger.info({ userId: updatedUser.id, changes: Object.keys(updatedUser) }, 'Updating user data')
+    
     setUser(updatedUser)
     authService.updateCurrentUser(updatedUser)
-  }
+    
+    logger.debug({ updatedUser }, 'User data updated successfully')
+  }, [])
 
   const value = {
     user,

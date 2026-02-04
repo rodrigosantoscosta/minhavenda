@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
+import SearchBar from '../search/SearchBar'
 import { 
   FiShoppingCart, 
   FiUser, 
@@ -16,7 +17,6 @@ import {
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const navigate = useNavigate()
   
   // Contexts
@@ -29,13 +29,9 @@ export default function Header() {
     return user.nome.split(' ')[0]
   }
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/produtos?q=${searchQuery}`)
-      setSearchQuery('')
-      setMobileMenuOpen(false)
-    }
+const handleSearch = (term) => {
+    navigate(`/busca?q=${encodeURIComponent(term)}`)
+    setMobileMenuOpen(false)
   }
 
   const handleLogout = () => {
@@ -77,27 +73,15 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <form 
-            onSubmit={handleSearch}
-            className="hidden md:flex flex-1 max-w-2xl mx-8"
-          >
-            <div className="relative w-full">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar produtos..."
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary-600 text-white p-2 rounded-md hover:bg-primary-700 transition-colors"
-              >
-                <FiSearch className="w-5 h-5" />
-              </button>
-            </div>
-          </form>
+{/* Search Bar - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+            <SearchBar
+              onSearch={handleSearch}
+              placeholder="Buscar produtos..."
+              showButton={false}
+              className="w-full"
+            />
+          </div>
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
@@ -201,27 +185,15 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Search Bar - Mobile */}
-        <form 
-          onSubmit={handleSearch}
-          className="md:hidden mt-4"
-        >
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar produtos..."
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary-600 text-white p-2 rounded-md"
-            >
-              <FiSearch className="w-5 h-5" />
-            </button>
-          </div>
-        </form>
+{/* Search Bar - Mobile */}
+        <div className="md:hidden mt-4">
+          <SearchBar
+            onSearch={handleSearch}
+            placeholder="Buscar produtos..."
+            showButton={true}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* Mobile Menu */}

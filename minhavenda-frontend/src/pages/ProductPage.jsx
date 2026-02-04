@@ -9,6 +9,14 @@ function ProductPage() {
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
+  // Função segura para formatar valores
+  const formatarValor = (valor) => {
+    if (typeof valor !== 'number' || isNaN(valor)) {
+      return 'R$ 0,00'
+    }
+    return `R$ ${valor.toFixed(2)}`
+  }
+
   const product = {
     nome: 'Notebook Gamer Pro',
     preco: { valor: 4999.90 },
@@ -45,10 +53,10 @@ function ProductPage() {
 
             <div className="mb-6">
               <p className="text-gray-500 line-through">
-                R$ {product.preco.valor.toFixed(2)}
+                {formatarValor(product.preco?.valor)}
               </p>
               <p className="text-4xl font-bold text-primary-600">
-                R$ {product.precoPromocional.toFixed(2)}
+                {formatarValor(product.precoPromocional)}
               </p>
             </div>
 

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Specification para construir queries seguras de busca de produtos.
  *
- * Usa JPA Criteria API para prevenir SQL Injection.
+ * Usa JPA Criteria API para construir query segura.
  * Todos os parâmetros são passados como prepared statements.
  */
 public class ProdutoSpecification {
