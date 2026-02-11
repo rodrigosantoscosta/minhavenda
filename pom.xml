@@ -59,11 +59,13 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- AMQP (RabbitMQ) - OPCIONAL, pode comentar se não for usar -->
+        <!-- AMQP (RabbitMQ) - DESABILITADO para economizar memória -->
+        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
+        -->
 
         <!-- Actuator (Monitoring) -->
         <dependency>
@@ -82,24 +84,20 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- H2 Database (para testes e desenvolvimento) -->
-        <!-- <dependency>
+        <!-- H2 Database - DESABILITADO em produção -->
+        <!--
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
-        </dependency> -->
+        </dependency>
+        -->
 
         <!-- Flyway (Database Migrations) -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>org.flywaydb</groupId>-->
-<!--            <artifactId>flyway-database-postgresql</artifactId>-->
-<!--            <scope>runtime</scope>-->
-<!--        </dependency>-->
 
         <!-- ===============================
              UTILS & TOOLS
@@ -124,7 +122,7 @@
              API DOCUMENTATION
              =============================== -->
 
-        <!-- SpringDoc OpenAPI (Swagger) -->
+        <!-- SpringDoc OpenAPI (Swagger) - Desabilitado via properties em produção -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -135,22 +133,27 @@
              MONITORING & METRICS
              =============================== -->
 
-        <!-- Micrometer Prometheus -->
+        <!-- Micrometer Prometheus - DESABILITADO para economizar memória -->
+        <!--
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        -->
 
         <!-- ===============================
-             DEVTOOLS
+             DEVTOOLS - NUNCA EM PRODUÇÃO
              =============================== -->
 
-        <!-- <dependency>
+        <!-- DevTools - DESABILITADO para economizar ~50MB -->
+        <!--
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
-        </dependency> -->
+        </dependency>
+        -->
 
         <!-- Configuration Processor -->
         <dependency>
@@ -196,12 +199,14 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Spring AMQP Test - OPCIONAL -->
+        <!-- Spring AMQP Test - DESABILITADO -->
+        <!--
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit-test</artifactId>
             <scope>test</scope>
         </dependency>
+        -->
     </dependencies>
 
     <build>
@@ -217,6 +222,10 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- Otimizações para produção -->
+                    <executable>true</executable>
+                    <layout>JAR</layout>
+                    <excludeDevtools>true</excludeDevtools>
                 </configuration>
             </plugin>
 

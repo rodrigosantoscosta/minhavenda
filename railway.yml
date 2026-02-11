@@ -1,0 +1,28 @@
+# Railway.yml - Configuração Avançada (Alternativa ao Procfile)
+# Local: railway.yml (raiz do projeto)
+#
+# ATENÇÃO: Use OU railway.yml OU Procfile, não ambos!
+# Procfile é mais simples, railway.yml é mais flexível.
+
+version: "1"
+
+build:
+  command: mvn clean package -DskipTests
+
+deploy:
+  # Comando de inicialização
+  startCommand: java -XX:+UseSerialGC -Xss512k -XX:MaxRAM=512m -Xmx400m -Xms128m -XX:+UseStringDeduplication -XX:MaxMetaspaceSize=128m -Dserver.port=$PORT -jar target/minhavenda-1.0.0.jar
+
+  # Health check
+  healthcheckPath: /api/actuator/health
+  healthcheckTimeout: 100
+
+  # Política de restart
+  restartPolicyType: ON_FAILURE
+  restartPolicyMaxRetries: 3
+
+# Variáveis de ambiente (também podem ser definidas no dashboard)
+environments:
+  production:
+    variables:
+      JAVA_TOOL_OPTIONS: "-XX:+UseSerialGC -Xss512k -XX:MaxRAM=512m"
