@@ -29,6 +29,7 @@ Sistema de e-commerce completo desenvolvido com foco em Clean Architecture e  Do
 - **React Hook Form** - Formulários performáticos
 - **Context API** - Gerenciamento de estado global
 - **Axios** - Cliente HTTP para requisições
+- **Pino** - Logging 
 
 ### Ferramentas e infraestrutura
 - **Lombok** - Redução de boilerplate
