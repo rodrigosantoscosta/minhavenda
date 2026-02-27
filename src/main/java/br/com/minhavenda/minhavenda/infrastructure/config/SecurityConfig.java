@@ -2,6 +2,7 @@ package br.com.minhavenda.minhavenda.infrastructure.config;
 
 import br.com.minhavenda.minhavenda.infrastructure.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -33,6 +34,9 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${cors.allowed-origins}")
+    private String corsAllowedOrigins;
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
@@ -45,13 +49,7 @@ public class SecurityConfig {
 
         // Origens permitidas
         configuration.setAllowedOrigins(Arrays.asList(
-                System.getenv("CORS_ALLOWED_ORIGINS").split(",")
-
-        ));
-
-        // Métodos permitidos
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+                corsAllowedOrigins.split(",")
         ));
 
         // Headers permitidos
@@ -77,7 +75,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                
+
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // CSRF desabilitado (API REST stateless)

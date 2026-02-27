@@ -1,0 +1,2 @@
+ALTER TABLE pedidos
+    ADD COLUMN IF NOT EXISTS codigo_rastreio VARCHAR(255);
