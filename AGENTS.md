@@ -1,47 +1,48 @@
-# AGENTS.md - Guide for Agentic Coding
+﻿AI coding agents guide for **MinhaVenda** e-commerce codebase.
 
-This file provides guidance for AI agents working with the MinhaVenda e-commerce codebase.
+MinhaVenda is a full-stack application: Spring Boot backend (Clean Architecture/DDD) + React frontend (Vite).
 
-## Overview
+---
 
-MinhaVenda is a full-stack e-commerce application with a Spring Boot backend following Clean Architecture/DDD principles and a React frontend with Vite.
+## Build & Commands
 
-## Build/Test Commands
+### Backend (Spring Boot - Root Directory)
 
-### Backend (Java/Spring Boot - Root Directory)
 ```bash
-# Run the application with H2 (development)
+# Start development server with H2
 mvn spring-boot:run
 
-# Build the project
+# Build project
 mvn clean package
 
-# Run tests
+# Run all tests
 mvn test
 
-# Run single test class
-mvn test -Dtest=MinhavendaApplicationTests
+# Run specific test
+mvn test -Dtest=PedidoServiceTest
 
 # Run tests with coverage
 mvn verify
 mvn jacoco:report
 
-# Run with specific profile
+# Start with specific profile
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
-# Generate JAR
+# Generate production JAR
 mvn clean package -DskipTests
 java -jar target/minhavenda-1.0.0.jar
 ```
 
-### Frontend (React - minhavenda-frontend/)
+
+### Frontend (React + Vite - minhavenda-frontend/)
+
 ```bash
 cd minhavenda-frontend
 
 # Install dependencies
 npm install
 
-# Run development server
+# Start dev server (http://localhost:5173)
 npm run dev
 
 # Build for production
@@ -50,161 +51,189 @@ npm run build
 # Run linter
 npm run lint
 
+# Fix linting issues
+npm run lint:fix
+
 # Preview production build
 npm run preview
 ```
 
+
 ### Docker Services
+
 ```bash
 # Start PostgreSQL and RabbitMQ
 docker-compose up -d
 
 # Stop services
 docker-compose down
+
+# View logs
+docker-compose logs -f
 ```
+
+
+---
+
+## Development Environment
+
+- **Backend:** http://localhost:8080
+- **Frontend:** http://localhost:5173
+- **Swagger UI:** http://localhost:8080/api/swagger-ui.html
+- **H2 Console:** http://localhost:8080/h2-console (dev only)
+    - JDBC URL: `jdbc:h2:mem:testdb`
+    - User: `sa`
+    - Password: (empty)
+- **PostgreSQL:** localhost:5432 (production)
+- **RabbitMQ:** localhost:5672 (messaging)
+
+---
 
 ## Project Structure
 
-### Backend Architecture (Clean Architecture/DDD)
+### Backend (Clean Architecture/DDD)
 
 ```
 src/main/java/br/com/minhavenda/minhavenda/
-├── 📱 presentation/           # REST Controllers
-├── 🎯 application/           # Use Cases, DTOs, Mappers
-├── 🏛️ domain/               # Entities, Value Objects, Domain Rules
-├── 🔧 infrastructure/        # Repositories, External Services
-└── ⚙️ config/               # Security, Database Config
+â”œâ”€â”€ presentation/          # REST Controllers (HTTP layer)
+â”œâ”€â”€ application/          # Use Cases, DTOs, Mappers, Events
+â”œâ”€â”€ domain/              # Entities, Value Objects, Domain Events, Business Rules
+â”œâ”€â”€ infrastructure/      # JPA Repositories, Email Service, External APIs
+â””â”€â”€ config/             # Spring Security, CORS, Jackson, Flyway
 ```
 
-**Key Patterns:**
-- Controllers handle HTTP and delegate to Use Cases
-- Use Cases orchestrate business logic
-- Entities contain business rules and validation
-- Repositories abstract data access
-- Mappers handle Entity ↔ DTO conversion
+**Layer Responsibilities:**
 
-### Frontend Structure
+- **Presentation:** Handle HTTP requests/responses, delegate to Use Cases
+- **Application:** Orchestrate business logic, publish domain events
+- **Domain:** Core business rules, entities, value objects, domain events
+- **Infrastructure:** External concerns (database, email, etc.)
+
+
+### Frontend (React + Vite)
 
 ```
 minhavenda-frontend/src/
-├── components/              # Reusable UI components
-├── pages/                  # Route-level components
-├── services/               # API service layer
-├── contexts/               # React contexts (Auth, Cart)
-├── utils/                  # Utility functions
-└── App.jsx                 # Main routing setup
+â”œâ”€â”€ components/         # Reusable UI components (Button, Input, Card)
+â”œâ”€â”€ pages/             # Route-level components (HomePage, ProductPage)
+â”œâ”€â”€ services/          # API service layer (authService, productService)
+â”œâ”€â”€ contexts/          # React contexts (AuthContext, CartContext)
+â”œâ”€â”€ utils/            # Utility functions (formatters, validators)
+â””â”€â”€ App.jsx           # Main routing and app setup
 ```
 
-## Code Style Guidelines
 
-### Backend (Java)
+---
+
+## Code Style
+
+### Backend (Java/Spring Boot)
 
 **Naming Conventions:**
-- Classes: PascalCase (ProdutoController, ListarProdutosUseCase)
-- Methods: camelCase (buscarPorId, executar)
-- Variables: camelCase (produtoId, nomeUsuario)
-- Constants: UPPER_SNAKE_CASE (DEFAULT_PAGE_SIZE)
-- Packages: lowercase (br.com.minhavenda.minhavenda)
 
-**Code Organization:**
-- Use Lombok annotations (@Getter, @NoArgsConstructor, @Builder)
-- Entity constructors: protected no-args, private all-args
-- Business logic in domain entities, not in services
-- Use Cases follow pattern: {Action}{Entity}UseCase
-- DTOs end with suffix: DTO, Request, Response
+- Classes: `PascalCase` (e.g., `ProdutoController`, `FinalizarCheckoutUseCase`)
+- Methods: `camelCase` (e.g., `buscarPorId`, `executar`)
+- Variables: `camelCase` (e.g., `produtoId`, `nomeUsuario`)
+- Constants: `UPPER_SNAKE_CASE` (e.g., `DEFAULT_PAGE_SIZE`)
+- Packages: `lowercase` (e.g., `br.com.minhavenda.minhavenda.domain`)
 
-**Validation & Error Handling:**
-- Use Jakarta validation annotations (@NotBlank, @Min, @Valid)
-- Business rules throw IllegalArgumentException with clear messages
-- Controllers return ResponseEntity with appropriate HTTP status
-- Use @PreAuthorize for security checks
+**Entity Pattern:**
 
-**Database Patterns:**
-- UUID primary keys with @GeneratedValue(strategy = GenerationType.UUID)
-- @CreationTimestamp for audit fields
-- JPA relationships: LAZY fetching, proper cascade/cascade removal
-- Use value objects for complex fields (Money, Email)
-
-**Examples:**
 ```java
-// Entity pattern
 @Entity
+@Table(name = "pedidos")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
-public class Produto {
-    // Business methods in entities
-    public void atualizarPreco(Money novoPreco) {
-        if (novoPreco == null || novoPreco.getValor().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Preço deve ser maior que zero");
-        }
-        this.preco = novoPreco;
-    }
-}
-
-// Use Case pattern
-@Service
-@RequiredArgsConstructor
-public class BuscarProdutoPorIdUseCase {
-    private final ProdutoRepository produtoRepository;
+public class Pedido {
     
-    public Optional<ProdutoDTO> executar(UUID id) {
-        return produtoRepository.findById(id)
-                .map(produtoMapper::toDTO);
-    }
-}
-
-// Controller pattern
-@RestController
-@RequestMapping("/produtos")
-@RequiredArgsConstructor
-@Slf4j
-@Tag(name = "Produtos", description = "Endpoints para gerenciamento de produtos")
-public class ProdutoController {
-    @GetMapping("/{id}")
-    public ResponseEntity<ProdutoDTO> buscarPorId(@PathVariable UUID id) {
-        return buscarProdutoPorIdUseCase.executar(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    
+    // Business method with validation
+    public void pagar(String metodoPagamento) {
+        if (this.status != StatusPedido.CRIADO) {
+            throw new IllegalStateException("Apenas pedidos CRIADO podem ser pagos");
+        }
+        this.status = StatusPedido.PAGO;
+        this.dataPagamento = Instant.now();
+        
+        // Emit domain event
+        this.registrarEvento(new PedidoPagoEvent(...));
     }
 }
 ```
+
+**Use Case Pattern:**
+
+```java
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class FinalizarCheckoutUseCase {
+    
+    private final PedidoRepository pedidoRepository;
+    private final DomainEventPublisher eventPublisher;
+    
+    @Transactional
+    public Pedido executar(UUID usuarioId, CheckoutRequest request) {
+        // 1. Business logic
+        Pedido pedido = new Pedido(...);
+        
+        // 2. Save
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+        
+        // 3. Register event
+        pedidoSalvo.registrarCriacao();
+        
+        // 4. Publish events
+        eventPublisher.publishAll(pedidoSalvo.getDomainEvents());
+        pedidoSalvo.limparEventos();
+        
+        return pedidoSalvo;
+    }
+}
+```
+
+**Controller Pattern:**
+
+```java
+@RestController
+@RequestMapping("/api/pedidos")
+@RequiredArgsConstructor
+@Tag(name = "Pedidos")
+public class PedidoController {
+    
+    private final FinalizarCheckoutUseCase finalizarCheckoutUseCase;
+    
+    @PostMapping("/checkout")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PedidoDTO> checkout(@Valid @RequestBody CheckoutRequest request) {
+        Pedido pedido = finalizarCheckoutUseCase.executar(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(pedido));
+    }
+}
+```
+
+**Important Patterns:**
+
+- **Entities:** Use `Instant` (UTC) for dates, not `LocalDateTime`
+- **DTOs:** Use `LocalDateTime` (convert in mapper using timezone)
+- **Domain Events:** Always publish after saving aggregate root
+- **Validation:** Use Jakarta Bean Validation (`@NotBlank`, `@Valid`)
+- **Error Handling:** Throw `IllegalArgumentException` with clear messages
+- **Repositories:** Always use `Optional<T>` for find methods
+- **Transactions:** Use `@Transactional` on Use Cases, not Controllers
+
 
 ### Frontend (React/JavaScript)
 
-**Component Organization:**
-- Functional components with hooks
-- Custom hooks for complex logic
-- Props destructuring
-- TypeScript-style prop validation with PropTypes (if needed)
+**Component Pattern:**
 
-**Styling:**
-- Tailwind CSS for all styling
-- Consistent color palette: primary colors defined in tailwind.config.js
-- Responsive design with mobile-first approach
-- Use semantic HTML elements
-
-**State Management:**
-- React Context for global state (AuthContext, CartContext)
-- Local state with useState/useReducer
-- Server state via API service layer
-- No external state management library
-
-**API Integration:**
-- Axios instance with interceptors in services/api.js
-- Service layer for each domain (authService.js, productService.js)
-- Consistent error handling with try/catch
-- Token management in localStorage
-
-**Routing:**
-- React Router v7 with nested routes
-- Protected routes with ProtectedRoute component
-- Route-based code splitting (lazy loading for large pages)
-
-**Examples:**
 ```jsx
-// Component pattern
+import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+
 export default function ProductCard({ product, onAddToCart }) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -222,8 +251,12 @@ export default function ProductCard({ product, onAddToCart }) {
 
   return (
     <div className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+      ```
       <h3 className="font-semibold text-lg mb-2">{product.nome}</h3>
+      ```
+      ```
       <p className="text-primary-600 font-bold">R$ {product.preco}</p>
+      ```
       <Button 
         onClick={handleAddToCart}
         disabled={isLoading}
@@ -234,473 +267,601 @@ export default function ProductCard({ product, onAddToCart }) {
     </div>
   );
 }
+```
 
-// Service pattern
+**Service Pattern:**
+
+```javascript
+// services/productService.js
+import { api } from './api';
+
 export const productService = {
   async getProducts(filters = {}) {
     const params = new URLSearchParams(filters).toString();
-    return await get(`/produtos/buscar?${params}`);
+    const { data } = await api.get(`/produtos/buscar?${params}`);
+    return data;
   },
 
   async getProductById(id) {
-    return await get(`/produtos/${id}`);
+    const { data } = await api.get(`/produtos/${id}`);
+    return data;
   }
 };
 ```
 
+**Styling Guidelines:**
+
+- Use Tailwind CSS for all styling
+- Mobile-first responsive design
+- Avoid inline styles
+- Use semantic HTML elements
+- Prefer utility classes over custom CSS
+
+---
+
 ## Testing
 
-### Backend
-- JUnit 5 for unit tests
-- Spring Boot Test for integration tests
-- Test naming: {ClassName}Test
-- Use @SpringBootTest for integration tests
-- Mock external dependencies with @MockBean
+### Backend Tests
 
-### Frontend
-- No specific test framework configured yet
-- When adding tests: consider Vitest or React Testing Library
-- Test naming: Component.test.jsx or .spec.jsx
-
-## Development Workflow
-
-### 🚀 Optimized Development Process
-
-1. **Start Backend**: `mvn spring-boot:run` (runs on http://localhost:8080)
-2. **Start Frontend ONCE**: `cd minhavenda-frontend && npm run dev` (runs on http://localhost:5173)
-3. **Access Swagger**: http://localhost:8080/api/swagger-ui.html
-4. **Database**: H2 console available during development
-5. **HOT RELOAD**: Vite automatically updates browser on file changes - NO RESTART NEEDED
-
-### 📋 Task Execution Protocol
-
-#### **Phase 1: Analysis (Read-Only)**
 ```bash
-# Static code analysis - NO SERVER RESTART
-grep -r "pattern" src/ --include="*.jsx,*.js"
-read src/components/Component.jsx
-glob "src/**/*.jsx"
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=PedidoServiceTest
+
+# Run with coverage report
+mvn verify
+mvn jacoco:report
+# View report: target/site/jacoco/index.html
 ```
 
-#### **Phase 2: Strategy Planning**
-1. Identify root cause of problem
-2. Plan complete solution approach
-3. Determine which files need changes
-4. Group related changes together (batch)
+**Test Naming:**
 
-#### **Phase 3: Implementation (Batch Changes)**
-```bash
-# Make ALL related changes FIRST, then test once
-# Leverage Vite's Hot Module Replacement (HMR)
-# Example: Fix component + fix props + update styles = ONE TEST
-```
+- Test classes: `{ClassName}Test`
+- Test methods: `deve{Action}{Expected}` (e.g., `deveCriarPedidoComSucesso`)
+- Use `@SpringBootTest` for integration tests
+- Mock external dependencies with `@MockBean`
 
-#### **Phase 4: Validation (Progressive)**
-```bash
-# Static validation (preferred)
-npm run lint
+**Example:**
 
-# Build test (only after batch complete)
-npm run build
-
-# Manual browser inspection (only for UI issues)
-# Use dev tools without server restart
-```
-
-### 🎯 Anti-Patterns to Avoid
-
-❌ **NEVER**: Restart dev server for component changes  
-❌ **NEVER**: Run `npm run dev` for each small fix  
-❌ **NEVER**: Test every change individually with full server restart  
-❌ **NEVER**: Open multiple terminal sessions
-❌ **NEVER**: Run npm run dev multiple times in same session
-
-✅ **ALWAYS**: Use Vite's hot reload - NO RESTART NEEDED for React components
-✅ **ALWAYS**: Batch related changes together to minimize server restarts
-✅ **ALWAYS**: Prefer static analysis (grep, read, glob) over server restarts
-✅ **ALWAYS**: Single dev server session per development session
-
-✅ **ALWAYS**: Use Vite's hot reload for React components  
-✅ **ALWAYS**: Batch related changes together  
-✅ **ALWAYS**: Static analysis before implementation  
-✅ **ALWAYS**: Single dev server session per development session
-
-
-
-#### **ReferenceError in useEffect**
-- **Problem**: Cannot access 'validation' before initialization
-- **Root Cause**: useMemo declared after useEffect that uses it
-- **Solution**: Proper declaration order (memo/useCallback before useEffect)
-- **Key Learning**: JavaScript hoisting rules apply to React hooks
-
-### 🎯 Debugging Framework
-
-#### **1. Problem Identification**
-```javascript
-// ✅ Pattern recognition for common issues
-const problemPatterns = {
-  'React does not recognize prop': 'Missing component interface',
-  'Cannot access before initialization': 'Hook declaration order',
-  'Component updating multiple times': 'useEffect dependency loops',
-  'Element positioning conflicts': 'Layout architecture issues'
-}
-```
-
-#### **2. Root Cause Analysis**
-```javascript
-// ✅ Always go beyond surface symptoms
-const rootCauseAnalysis = {
-  symptom: 'Component flickering',
-  immediate_cause: 'Multiple re-renders',
-  root_cause: 'useEffect dependency loops',
-  contributing_factors: ['Multiple state updates', 'Missing debounce']
-}
-```
-
-#### **3. Solution Strategy**
-```javascript
-// ✅ Address multiple layers simultaneously
-const solutionStrategy = {
-  immediate_fix: 'Add debounce to prevent loops',
-  structural_improvement: 'Consolidate state updates',
-  performance_optimization: 'Memoize expensive operations',
-  prevention: 'Establish hook dependency patterns'
-}
-```
-
-### 📈 Best Practices Established
-
-#### **Component Development**
-1. **Interface First**: Define props interface before implementation
-2. **Dependency Management**: Stable dependencies in useCallback/useEffect
-3. **State Batching**: Atomic updates to prevent cascading renders
-4. **Performance First**: Debounce + memoization for optimization
-5. **Layout Coesion**: Integrate actions within component boundaries
-
-#### **Debugging Process**
-1. **Static Analysis**: grep, read, glob for pattern identification
-2. **Problem Isolation**: Identify root cause vs symptoms
-3. **Strategic Planning**: Plan complete solution before implementation
-4. **Batch Implementation**: Group related changes together
-5. **Progressive Testing**: Validate incrementally without restarts
-
-#### **Code Quality**
-1. **Prevention over Correction**: Establish patterns to prevent common issues
-2. **Documentation**: Update AGENTS.md with lessons learned
-3. **Architecture**: Prefer structural solutions over CSS fixes
-4. **Performance**: Consider impact of every change on render cycles
-5. **Maintainability**: Create reusable, extensible components
-
-### 🔄 Performance-First Approach
-
-```javascript
-// ✅ GOOD: Atomic state updates (prevents render loops)
-const handleInputChange = useCallback((field, value) => {
-  setFormData(prev => {
-    const newData = { ...prev, [field]: value }
-    // Handle related field updates in single operation
-    if (field === 'cep') {
-      newData.rua = ''; newData.bairro = ''; newData.cidade = ''
+```java
+@SpringBootTest
+class PedidoServiceTest {
+    
+    @Autowired
+    private PedidoService pedidoService;
+    
+    @MockBean
+    private DomainEventPublisher eventPublisher;
+    
+    @Test
+    void deveCriarPedidoAoFinalizarCheckout() {
+        // Arrange
+        CheckoutRequest request = new CheckoutRequest();
+        request.setEnderecoEntrega("Rua Teste, 123");
+        
+        // Act
+        PedidoDTO pedido = pedidoService.finalizarCheckout("user@test.com", request);
+        
+        // Assert
+        assertThat(pedido).isNotNull();
+        assertThat(pedido.getStatus()).isEqualTo(StatusPedido.CRIADO);
+        verify(eventPublisher, times(1)).publishAll(anyList());
     }
-    return newData
-  })
-}, [])
-
-// ✅ GOOD: Debounced validation (prevents excessive renders)
-useEffect(() => {
-  const timeoutId = setTimeout(() => {
-    const validation = validateForm(formData)
-    setErrors(validation.errors)
-  }, 300)
-  return () => clearTimeout(timeoutId)
-}, [formData])
-
-// ❌ BAD: Multiple state updates per interaction
-setFormData(prev => ({ ...prev, [field]: value }))
-setIsTouched(true)
-setErrors(prev => ({ ...prev, [field]: '' }))
+}
 ```
 
-### 📊 Error Analysis Framework
 
-#### **1. Static Analysis (Preferred)**
-- **Syntax/Reference Errors**: `grep`, `read` pattern matching
-- **Import/Export Issues**: Dependency analysis
-- **Props Interface**: Component contract verification
-- **Hook Dependencies**: useEffect dependency array validation
+### Frontend Tests
 
-#### **2. Build Analysis (Secondary)**
-- **Compilation Errors**: `npm run build` after batch changes
-- **TypeScript Errors**: If applicable
-- **Bundle Analysis**: Size/performance metrics
+- **Framework:** Vitest (recommended, not yet configured)
+- **Component Testing:** React Testing Library
+- **Test Naming:** `Component.test.jsx` or `.spec.jsx`
 
-#### **3. Runtime Analysis (Last Resort)**
-- **Console Errors**: Browser dev tools only
-- **Behavioral Issues**: Manual testing only
-- **Network Issues**: Dev tools network tab
-
-### 🛠️ Debugging Best Practices
-
-#### **Component Performance Issues**
-```javascript
-// ✅ Use React DevTools Profiler
-// ✅ Memoize expensive calculations with useMemo
-// ✅ Use useCallback for event handlers
-// ✅ Avoid dependencies that cause re-renders
-```
-
-#### **State Management Issues**
-```javascript
-// ✅ Atomic operations to prevent race conditions
-// ✅ Debounce validation and API calls
-// ✅ Use refs for values that don't trigger re-renders
-// ❌ Avoid useEffect dependency loops
-```
-
-#### **Layout/Styling Issues**
-```javascript
-// ✅ Check Tailwind classes in browser dev tools
-// ✅ Use responsive prefixes consistently
-// ✅ Test in multiple viewport sizes
-// ✅ Verify z-index stacking context
-```
-
-## Key Dependencies
-
-### Backend
-- Spring Boot 3.2.1, Java 17
-- Spring Data JPA, Spring Security, Validation
-- PostgreSQL (production), H2 (development)
-- Lombok, MapStruct
-- SpringDoc OpenAPI (Swagger)
-
-### Frontend
-- React 19, Vite
-- Tailwind CSS
-- Axios for HTTP client
-- React Router v7
-- React Hook Form
-
-## Security Considerations
-
-- JWT tokens stored in localStorage
-- Role-based access control (@PreAuthorize)
-- Input validation on both frontend and backend
-- SQL injection prevention via JPA/Hibernate
-- CORS configuration for API access
+---
 
 ## Database Migrations
 
-- Flyway for database versioning
-- Migration files in `src/main/resources/db/migration/`
-- Naming convention: V{number}__description.sql
+**Flyway Migrations:**
 
-## 📋 Session Management & Development Protocol
+- Location: `src/main/resources/db/migration/`
+- Naming: `V{version}__{description}.sql`
+    - Example: `V5__add_rastreamento_fields_to_pedidos.sql`
+- **NEVER** modify an already applied migration
+- Create new migration to fix/change previous ones
 
-### 🔄 Single Development Session Strategy
+**Migration Commands:**
 
-#### **Session Initialization**
 ```bash
-# Start ONCE per development session
-npm run dev  # Runs on :5173, :5174, :5175, etc.
-# Keep terminal open, leverage hot reload
+# Migrations run automatically on app start
+mvn spring-boot:run
+
+# Clean database (CAREFUL!)
+mvn flyway:clean
+
+# Migrate manually
+mvn flyway:migrate
+
+# Show migration status
+mvn flyway:info
 ```
 
-#### **Process Management**
-```bash
-# Check existing Vite processes
-ps aux | grep -i vite
-# Kill orphaned processes if needed
-taskkill /PID <number> (Windows)
-kill -9 <PID> (Linux/Mac)
+**Creating Migration:**
+
+```sql
+-- V5__add_rastreamento_fields_to_pedidos.sql
+
+ALTER TABLE pedidos
+ADD COLUMN codigo_rastreio VARCHAR(100);
+
+ALTER TABLE pedidos
+ADD COLUMN transportadora VARCHAR(100);
+
+CREATE INDEX idx_pedidos_codigo_rastreio ON pedidos(codigo_rastreio);
 ```
 
-#### **Port Management**
-```bash
-# Check available ports
-netstat -an | grep :5173
-# Or use lsof for specific port
-lsof -i :5173
+**PostgreSQL-specific:** Use `DO $ BEGIN ... END $` blocks for conditional DDL
+**H2-specific:** Use `IF NOT EXISTS` clauses
+
+---
+
+## Domain Events
+
+**Pattern:**
+
+1. Entity emits event when state changes
+2. Event is registered internally (`registrarEvento()`)
+3. After saving, publish events (`eventPublisher.publishAll()`)
+4. Clear events from aggregate (`limparEventos()`)
+
+**Example:**
+
+```java
+// In Use Case
+Pedido pedido = new Pedido(...);
+pedido = pedidoRepository.save(pedido);
+
+// Register creation event (after save, so ID exists)
+pedido.registrarCriacao();
+
+// Publish all events
+eventPublisher.publishAll(pedido.getDomainEvents());
+pedido.limparEventos();
 ```
 
-### 📋 Development Protocol Summary
+**Event Listener:**
 
-#### **When Starting New Session**
-1. ✅ Check for existing Vite processes
-2. ✅ Kill orphaned processes if found
-3. ✅ Start single `npm run dev` instance
-4. ✅ Use hot reload for React changes
-5. ✅ Only restart if server crashes or hangs
+```java
+@Component
+@RequiredArgsConstructor
+public class PedidoEventListener {
+    
+    private final EmailService emailService;
+    
+    @Async
+    @EventListener
+    public void handlePedidoCriado(PedidoCriadoEvent event) {
+        emailService.enviarEmailPedidoCriado(
+            event.getEmailUsuario(),
+            event.getNomeUsuario(),
+            event.getPedidoId(),
+            event.getValorTotal()
+        );
+    }
+}
+```
 
-#### **During Development**
-1. ✅ Static analysis first (grep, read, glob)
-2. ✅ Batch related changes together
-3. ✅ Let Vite handle hot reload automatically
-4. ✅ Manual browser testing for UI issues
-5. ✅ Build testing only after batch completion
 
-#### **When Encountering Issues**
-1. ✅ Analyze error patterns with static tools
-2. ✅ Check console without server restart
-3. ✅ Use React DevTools for component inspection
-4. ✅ Network tab for API issues
-5. ✅ Only restart as last resort
+---
 
+## Security
 
-### 🛠️ Tools for Effective Session Management
+- **Authentication:** JWT tokens stored in localStorage
+- **Authorization:** Role-based with `@PreAuthorize`
+    - `@PreAuthorize("isAuthenticated()")` - any logged user
+    - `@PreAuthorize("hasRole('ADMIN')")` - admin only
+- **Validation:** Always use `@Valid` on request bodies
+- **SQL Injection:** Prevented by JPA/Hibernate
+- **CORS:** Configured in `CorsConfig.java`
 
-#### **Process Monitoring**
+---
+
+## API Documentation
+
+**Swagger UI:** http://localhost:8080/api/swagger-ui.html
+
+**Key Endpoints:**
+
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `GET /api/produtos/buscar` - Search products
+- `POST /api/carrinho/adicionar` - Add to cart
+- `POST /api/checkout/finalizar` - Finalize checkout
+- `GET /api/meus-pedidos` - List user orders
+
+---
+
+## Common Workflows
+
+### Adding a New Feature
+
+1. **Create Use Case:**
+
 ```bash
-# List all Node.js processes
-ps aux | grep node
-# Monitor port usage
-netstat -tulpn | grep :517
-# Find and kill processes
+# Create file: application/usecase/{domain}/{Action}{Entity}UseCase.java
+```
+
+2. **Implement Business Logic in Entity:**
+
+```java
+// domain/entity/Pedido.java
+public void novoMetodo() {
+    // validation
+    // state change
+    // emit event
+}
+```
+
+3. **Create DTO:**
+
+```bash
+# Create file: application/dto/{domain}/{Entity}DTO.java
+```
+
+4. **Update Mapper:**
+
+```java
+// application/mapper/PedidoMapper.java
+```
+
+5. **Create Controller Endpoint:**
+
+```java
+// presentation/controller/PedidoController.java
+```
+
+6. **Write Tests:**
+
+```bash
+# Create file: src/test/.../UseCaseTest.java
+```
+
+7. **Test manually via Swagger**
+
+### Frontend Development (Hot Reload Active)
+
+```bash
+# Start dev server ONCE
+cd minhavenda-frontend
+npm run dev
+
+# Keep terminal open - Vite auto-reloads on changes
+# NO NEED TO RESTART for code changes!
+```
+
+**When to Restart:**
+
+- Added new dependency (`npm install`)
+- Changed `vite.config.js`
+- Changed environment variables
+- Server crashed
+
+**Do NOT:**
+
+- Restart for every code change
+- Run `npm run build` during development
+- Start multiple dev servers
+
+---
+
+## Common Pitfalls
+
+### Pedido with valorTotal = 0.00
+
+**Symptom:** Order created with `valorTotal = 0.00` but `quantidadeItens > 0`.
+
+**Root Cause:**
+
+- `ItemPedido` has a `subtotal` field calculated only on `@PrePersist`/`@PreUpdate`
+- When `Pedido.calcularValorTotal()` calls `item.getSubtotal()` before persisting, it returns `null`
+- The stream filters out `null` values, resulting in zero total
+
+**Solution:**
+Override `getSubtotal()` in `ItemPedido` to calculate dynamically if not yet persisted:
+
+```java
+@Entity
+@Table(name = "itens_pedido")
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class ItemPedido {
+    
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
+    
+    @PrePersist
+    @PreUpdate
+    protected void calcularSubtotal() {
+        this.subtotal = calcularSubtotalAtual();
+    }
+    
+    // Override Lombok getter
+    public BigDecimal getSubtotal() {
+        if (this.subtotal != null) {
+            return this.subtotal;
+        }
+        return calcularSubtotalAtual();
+    }
+    
+    private BigDecimal calcularSubtotalAtual() {
+        if (quantidade != null && precoUnitario != null) {
+            return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+        }
+        return BigDecimal.ZERO;
+    }
+}
+```
+
+**Use Case Pattern (Correct Order):**
+
+```java
+// 1. Create pedido with zero values (will be calculated)
+Pedido pedido = new Pedido(
+    usuario,
+    BigDecimal.ZERO,
+    valorFrete,
+    valorDesconto,
+    BigDecimal.ZERO,
+    enderecoEntrega,
+    observacoes
+);
+
+// 2. Add items BEFORE saving
+for (ItemCarrinho item : carrinho.getItens()) {
+    pedido.adicionarItem(item.getProduto(), item.getQuantidade(), item.getPrecoUnitario());
+}
+
+// 3. Save (now with correct values)
+Pedido pedidoSalvo = pedidoRepository.save(pedido);
+```
+
+
+### Missing quantidade_itens Field
+
+**Symptom:** SQL error: `null value in column "quantidade_itens" violates not-null constraint`
+
+**Solution:** Add the field to `Pedido` entity and update it when items change:
+
+```java
+@Column(name = "quantidade_itens", nullable = false)
+private Integer quantidadeItens = 0;
+
+public void adicionarItem(ItemPedido item) {
+    this.itens.add(item);
+    item.setPedido(this);
+    this.calcularValorTotal();
+    this.quantidadeItens = this.getQuantidadeTotal();  // Update count
+    this.dataAtualizacao = Instant.now();
+}
+```
+
+
+### DevTools Not Hot Reloading
+
+**Check:**
+
+1. DevTools dependency in `pom.xml`
+2. IDE auto-compile enabled (IntelliJ: `Build project automatically`)
+3. Look for `LiveReload server is running on port 35729` in console
+
+**If not working:** Use `Ctrl+F9` (IntelliJ) or `Ctrl+B` (Eclipse) to force rebuild.
+
+---
+
+## Troubleshooting
+
+### Backend Issues
+
+**Port 8080 already in use:**
+
+```bash
+# Find process
+lsof -i :8080
+# Kill process
+kill -9 <PID>
+```
+
+**Database migration failed:**
+
+```bash
+# Check migration status
+mvn flyway:info
+
+# If needed, repair
+mvn flyway:repair
+```
+
+**Tests failing:**
+
+```bash
+# Run with verbose output
+mvn test -X
+
+# Skip tests temporarily
+mvn spring-boot:run -DskipTests
+```
+
+
+### Frontend Issues
+
+**Port 5173 in use:**
+
+```bash
+# Vite will auto-increment (5174, 5175, etc.)
+# Or kill existing process
 pkill -f vite
 ```
 
-#### **Browser Development**
-- React DevTools for component inspection
-- Console for runtime errors
-- Network tab for API debugging
-- Performance tab for optimization
-- Elements panel for layout issues
+**Module not found:**
 
-#### **IDE/Editor Integration**
-- Use built-in terminals instead of external
-- Configure hot reload preferences
-- Set up error highlighting
-- Enable code completion and linting
-
-## Advanced Patterns & Best Practices
-
-### 🎯 Component Anti-Patterns to Avoid
-
-#### **❌ Performance Anti-Patterns**
-```javascript
-// ❌ Multiple state updates per interaction
-setFormData(prev => ({ ...prev, [field]: value }))
-setIsTouched(true)
-setErrors(prev => ({ ...prev, [field]: '' }))
-
-// ✅ Atomic state update
-setFormData(prev => {
-  const newData = { ...prev, [field]: value }
-  if (field === 'cep') {
-    newData.rua = ''; newData.bairro = ''; newData.cidade = ''
-  }
-  return newData
-})
-setIsTouched(true)
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-#### **❌ useEffect Dependency Loops**
-```javascript
-// ❌ Callback recreation causing loops
-useEffect(() => {
-  // validation logic
-}, [formData, onAddressChange]) // onAddressChange changes frequently
+**Tailwind classes not working:**
 
-// ✅ Stable dependencies
-const memoizedOnAddressChange = useCallback((data) => {
-  onAddressChange?.(data)
-}, [onAddressChange])
-
-useEffect(() => {
-  // validation logic with debounce
-}, [formData, memoizedOnAddressChange])
+```bash
+# Check tailwind.config.js content paths
+# Restart dev server
 ```
 
-#### **❌ Props Interface Issues**
-```javascript
-// ❌ Unsupported props
-<Input icon={<FiMail />} // 'icon' not supported
-       rightElement={<Button />} // 'rightElement' not supported
 
-// ✅ Correct props
-<Input leftIcon={<FiMail />} 
-       rightElement={<Button />} // implemented in component
+---
+
+## Git Workflow
+
+**Commit Message Format:**
+
+```
+type(scope): subject
+
+[optional body]
+
+[optional footer]
 ```
 
-### 🔧 Common Solutions for React Performance Issues
+**Types:**
 
-#### **1. Debounce for Validation**
-```javascript
-useEffect(() => {
-  const timeoutId = setTimeout(() => {
-    if (isTouched) {
-      const validation = validarEndereco(formData)
-      setErrors(validation.errors)
-      onAddressChange?.({
-        address: formData,
-        isValid: validation.isValid,
-        errors: validation.errors
-      })
-    }
-  }, 300) // Debounce for 300ms
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `refactor`: Code refactoring
+- `test`: Adding tests
+- `chore`: Maintenance
 
-  return () => clearTimeout(timeoutId)
-}, [formData, isTouched, memoizedOnAddressChange])
+**Examples:**
+
+```
+feat(pedido): adicionar campo codigo_rastreio
+
+- Adicionar migration V5
+- Atualizar entidade Pedido
+- Criar evento PedidoEnviado
+
+fix(checkout): corrigir validaÃ§Ã£o de estoque
+
+- Validar estoque antes de criar pedido
+- Adicionar mensagem de erro clara
 ```
 
-#### **2. Memoization for Expensive Operations**
-```javascript
-// ✅ Memoize validation result
-const validation = useMemo(() => validarEndereco(formData), [formData])
+**Before Committing:**
 
-// ✅ Memoize callback functions
-const handleInputChange = useCallback((field, value) => {
-  // implementation
-}, [errors]) // Only depend on what's actually used
-```
+```bash
+# Run tests
+mvn test
 
-#### **3. State Update Batching**
-```javascript
-// ✅ Use single update function
-const handleInputChange = useCallback((field, value) => {
-  setFormData(prev => {
-    const newData = { ...prev, [field]: value }
-    
-    // Handle all related logic in one go
-    if (field === 'cep') {
-      const cepNumbers = value.replace(/\D/g, '')
-      if (cepNumbers.length < 8) {
-        newData.rua = ''; newData.bairro = ''; 
-        newData.cidade = ''; newData.estado = ''
-      }
-    }
-    
-    return newData
-  })
-  
-  // Batch related state updates
-  setIsTouched(true)
-  setCepNotFound(false)
-}, [])
+# Run linter (if applicable)
+mvn checkstyle:check
 ```
 
-### 🐛 Debugging Troubleshooting Guide
 
-#### **ReferenceError: Cannot access 'X' before initialization**
-```
-Cause: Variable declared with const/let used before declaration
-Solution: Move useMemo/useCallback declarations before useEffect
-Example: Move validation useMemo before useEffect that uses it
+---
+
+## Important Notes
+
+### Date/Time Handling
+
+- **Entities:** Use `Instant` (UTC timezone)
+- **DTOs:** Use `LocalDateTime` (local timezone)
+- **Conversion:** Done in Mapper using `ZoneId.of("America/Sao_Paulo")`
+
+**Example:**
+
+```java
+// PedidoMapper.java
+private LocalDateTime toLocalDateTime(Instant instant) {
+    if (instant == null) return null;
+    return LocalDateTime.ofInstant(instant, ZoneId.of("America/Sao_Paulo"));
+}
 ```
 
-#### **React does not recognize prop 'X' on a DOM element**
-```
-Cause: Component passing unknown props to HTML elements via {...props}
-Solution: Destructure and filter only valid props, or implement missing prop
-Example: Add rightElement to Input component props interface
+
+### Email Configuration
+
+**Development:** Use Mailtrap or Gmail with app password
+**Production:** Use SendGrid or Amazon SES
+
+**Config:**
+
+```yaml
+# application.yml
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
 ```
 
-#### **Component updating multiple times/flickering**
-```
-Cause: useEffect dependencies causing re-render loops
-Solution: 
-1. Add debounce to validation effects
-2. Use stable callback references (useCallback)
-3. Batch state updates
-4. Memoize expensive calculations
+
+### Environment Variables
+
+**Never commit:**
+
+- Database passwords
+- API keys
+- Email passwords
+- JWT secrets
+
+**Use:**
+
+- `application-local.yml` (gitignored)
+- Environment variables
+- `.env` file (gitignored)
+
+---
+
+## Key Dependencies
+
+**Backend:**
+
+- Spring Boot 3.2.1
+- Java 17
+- Spring Data JPA
+- Spring Security
+- Flyway
+- Lombok
+- SpringDoc OpenAPI (Swagger)
+- PostgreSQL / H2
+
+**Frontend:**
+
+- React 19
+- Vite 5
+- Tailwind CSS
+- Axios
+- React Router v7
+- React Hook Form
+
+---
+
+## Rule 11 — Session Changelog (Mandatory)`n`nAfter **every agent session** that includes code changes, the agent MUST:`n`n1. **Update ``LAST_CHANGES.md``** (create if missing) — prepend a new entry at the top with:`n   - Date (``YYYY-MM-DD``)`n   - Summary of what was done and why`n   - List of files changed with a one-line description each`n   - Any gotchas or notes for the next agent`n`n2. **Update ``NEXT_STEPS.md``** (create if missing) — keep it current:`n   - Move completed items to the Completed section with the date`n   - Add any new pending items discovered during the session`n   - Maintain High / Medium / Low priority grouping`n`nThis rule exists so every agent and developer can orient themselves instantly without reading the full git history or conversation transcript.`n`n---`n`n## Additional Resources
+
+- [Spring Boot Docs](https://docs.spring.io/spring-boot/docs/current/reference/html/)
+- [React Docs](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [Flyway Docs](https://flywaydb.org/documentation/)
+- [DDD Reference](https://www.domainlanguage.com/ddd/)
+
+---
+
+**Last Updated:** 2026-02-02
+
+For questions or issues, consult this file first. It's designed to help AI coding agents understand and work effectively with this codebase.
+
 ```

@@ -2,6 +2,7 @@ package br.com.minhavenda.minhavenda.infrastructure.config;
 
 import br.com.minhavenda.minhavenda.infrastructure.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Configuração de segurança com CORS integrado.
@@ -32,6 +34,9 @@ import java.util.Arrays;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${cors.allowed-origins}")
+    private String corsAllowedOrigins;
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
@@ -45,27 +50,26 @@ public class SecurityConfig {
 
         // Origens permitidas
         configuration.setAllowedOrigins(Arrays.asList(
-                System.getenv("CORS_ALLOWED_ORIGINS").split(",")
-
+                corsAllowedOrigins.split(",")
         ));
 
-        // Métodos permitidos
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        // Métodos HTTP permitidos (incluindo OPTIONS para preflight)
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
         ));
 
         // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
 
         // Headers expostos
-        configuration.setExposedHeaders(Arrays.asList(
+        configuration.setExposedHeaders(List.of(
                 "Authorization", "Content-Disposition"
         ));
 
         // Permitir credenciais
         configuration.setAllowCredentials(true);
 
-        // Cache
+        // Cache do preflight
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -77,7 +81,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // CSRF desabilitado (API REST stateless)

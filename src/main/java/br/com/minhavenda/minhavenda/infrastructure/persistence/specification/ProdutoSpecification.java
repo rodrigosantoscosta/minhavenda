@@ -54,14 +54,14 @@ public class ProdutoSpecification {
             // Filtro: Preço mínimo
             if (filtro.getPrecoMin() != null) {
                 predicates.add(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get("preco"), filtro.getPrecoMin())
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("preco").get("valor"), filtro.getPrecoMin())
                 );
             }
 
             // Filtro: Preço máximo
             if (filtro.getPrecoMax() != null) {
                 predicates.add(
-                        criteriaBuilder.lessThanOrEqualTo(root.get("preco"), filtro.getPrecoMax())
+                        criteriaBuilder.lessThanOrEqualTo(root.get("preco").get("valor"), filtro.getPrecoMax())
                 );
             }
 
@@ -131,13 +131,13 @@ public class ProdutoSpecification {
 
             if (precoMin != null) {
                 predicates.add(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get("preco"), precoMin)
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("preco").get("valor"), precoMin)
                 );
             }
 
             if (precoMax != null) {
                 predicates.add(
-                        criteriaBuilder.lessThanOrEqualTo(root.get("preco"), precoMax)
+                        criteriaBuilder.lessThanOrEqualTo(root.get("preco").get("valor"), precoMax)
                 );
             }
 

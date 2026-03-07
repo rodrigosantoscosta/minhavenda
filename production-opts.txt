@@ -1,0 +1,32 @@
+# MinhaVenda - Recommended JVM options for production
+
+# Container-friendly defaults (use MaxRAMPercentage to follow container limits)
+-XX:MaxRAMPercentage=75
+-XX:+UseG1GC
+-XX:+UseStringDeduplication
+
+# Optional: for very large heaps or when low-pause GC is critical (JDK 17+)
+# -XX:+UseZGC
+
+# Useful debug/diagnostic options (enable only when troubleshooting)
+# -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heap.hprof
+# -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints
+
+# Tuning hints:
+# - Lower MaxRAMPercentage on small instances (e.g. 60) to leave room for system processes
+# - Increase Hikari pool size carefully; pool * threads may increase memory usage
+
+# Example: run locally (PowerShell)
+# $env:JAVA_TOOL_OPTIONS='-XX:MaxRAMPercentage=75 -XX:+UseG1GC -XX:+UseStringDeduplication -Dspring.profiles.active=prod'
+# java $env:JAVA_TOOL_OPTIONS -jar target/minhavenda-1.0.0.jar
+
+# Example: docker run with memory limit and override JVM opts
+# docker run -m 512m --memory-swap=512m -e JAVA_TOOL_OPTIONS='-XX:MaxRAMPercentage=80 -XX:+UseG1GC -Dspring.profiles.active=prod' minhavenda:latest
+
+# Profiling & diagnostics
+# - Use jcmd/jmap to capture heap: jmap -dump:live,format=b,file=heap.hprof <PID>
+# - Use async-profiler to record allocations under load
+
+# Notes:
+# - Prefer collecting metrics/profiler data before changing options blindly.
+# - Consider switching to ZGC for very large heaps and modern JDKs, but test thoroughly.

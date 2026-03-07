@@ -1,15 +1,18 @@
-# === JAVA ===
+# ============================================================
+# JAVA
+# ============================================================
 *.class
 *.jar
 *.war
 *.ear
-*.log
 *.ctxt
 .mtj.tmp/
 hs_err_pid*
 replay_pid*
 
-# === MAVEN ===
+# ============================================================
+# MAVEN
+# ============================================================
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -19,20 +22,94 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
 
-# === GRADLE (se usar) ===
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-# === SPRING BOOT ===
+# ============================================================
+# SPRING BOOT
+# ============================================================
 .springBeans
 spring-boot-starter-parent/
 
-# === INTELLIJ IDEA ===
+# ============================================================
+# ENVIRONMENT & SECRETS — NEVER COMMIT
+# Keep .env.example committed as a reference template.
+# ============================================================
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+src/.env
+!.env.example
+
+# Spring profile properties with real credentials
+application-local.properties
+application-prod.properties
+application-production.properties
+application-staging.properties
+application-secrets.properties
+# Keep the base and example files
+!application.properties
+!application-example.properties
+!application-dev.properties
+
+# Secrets, keys, certificates
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+*.crt
+*.cer
+*.der
+*.pfx
+certificates/
+ssl/
+tls/
+jwt-secret.txt
+
+# AWS credentials
+.aws/
+credentials.csv
+
+# ============================================================
+# SERENA AI AGENT
+# Memories (.serena/memories/) SHOULD be committed so all
+# developers and agents share project context.
+# Cache and local config are machine-specific — do not commit.
+# ============================================================
+.serena/cache/
+.serena/project.local.yml
+
+# ============================================================
+# DOCKER
+# docker-compose.yml and Dockerfile are SOURCE FILES and
+# must be committed. Only override files are ignored.
+# ============================================================
+docker-compose.override.yml
+.dockerenv
+
+# ============================================================
+# LOGS
+# ============================================================
+*.log
+*.log.*
+logs/
+log/
+
+# ============================================================
+# DATABASE
+# ============================================================
+*.db
+*.sqlite
+*.sqlite3
+*.sql.backup
+*.dump
+
+# ============================================================
+# INTELLIJ IDEA
+# ============================================================
 .idea/
 *.iws
 *.iml
@@ -40,8 +117,23 @@ spring-boot-starter-parent/
 out/
 .idea_modules/
 *.iml.bak
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/aws.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
 
-# === VS CODE ===
+# ============================================================
+# VS CODE
+# ============================================================
 .vscode/
 .factorypath
 .settings/
@@ -49,7 +141,9 @@ out/
 .project
 *.code-workspace
 
-# === ECLIPSE ===
+# ============================================================
+# ECLIPSE
+# ============================================================
 .metadata
 bin/
 tmp/
@@ -61,14 +155,18 @@ local.properties
 .loadpath
 .recommenders
 
-# === NETBEANS ===
+# ============================================================
+# NETBEANS
+# ============================================================
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-# === SISTEMA OPERACIONAL ===
+# ============================================================
+# OS GENERATED FILES
+# ============================================================
 # macOS
 .DS_Store
 .AppleDouble
@@ -92,110 +190,9 @@ $RECYCLE.BIN/
 .directory
 .Trash-*
 
-# === LOGS ===
-*.log
-logs/
-*.log.*
-log/
-
-# === BANCO DE DADOS ===
-*.db
-*.sqlite
-*.sqlite3
-*.sql.backup
-*.dump
-
-# ========================================
-# === ARQUIVOS SENSÍVEIS - CRÍTICO! ===
-# ========================================
-
-# Variáveis de Ambiente
-src/.env
-.env.*
-.env.local
-.env.development
-.env.test
-.env.production
-.env.staging
-*.env
-!.env.example
-
-# Properties Sensíveis
-application-local.properties
-application-prod.properties
-application-production.properties
-application-secrets.properties
-application-*.properties
-!application.properties
-!application-example.properties
-
-# Secrets e Credentials
-*secret*
-*secrets*
-*credentials*
-*password*
-*passwd*
-*.pem
-*.key
-*.p12
-*.jks
-*.keystore
-*.truststore
-
-# Certificados e Keys
-*.crt
-*.cer
-*.der
-*.pfx
-certificate/
-certificates/
-ssl/
-tls/
-
-# Tokens e API Keys
-*token*
-*apikey*
-*api-key*
-.apikeys
-jwt-secret.txt
-
-# AWS
-.aws/
-aws-credentials
-credentials.csv
-
-# Docker Secrets
-docker-compose.override.yml
-.dockerenv
-compose.yaml
-docker-compose.yml
-# Kubernetes Secrets
-*-secret.yaml
-*-secret.yml
-
-# === UPLOADS E MÍDIA ===
-uploads/
-upload/
-storage/
-media/
-temp-uploads/
-tmp-uploads/
-
-# === BACKUP ===
-*.backup
-*.bak
-*.old
-backup/
-backups/
-
-# === CACHE ===
-.cache/
-.temp/
-.tmp/
-cache/
-lixo/
-
-# === NODE (se usar frontend) ===
+# ============================================================
+# NODE (frontend submodule / tooling)
+# ============================================================
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -204,56 +201,47 @@ yarn-error.log*
 .npm
 .yarn-integrity
 
-# === DOCUMENTAÇÃO GERADA ===
-javadoc/
-apidocs/
-site/
-
-# === TESTES ===
+# ============================================================
+# TESTING & COVERAGE
+# ============================================================
 coverage/
-*.cover
-.hypothesis/
-.pytest_cache/
-htmlcov/
-
-# === SONARQUBE ===
 .sonar/
 .scannerwork/
+htmlcov/
 
-# === OUTROS ===
+# ============================================================
+# UPLOADS & TEMP FILES
+# ============================================================
+uploads/
+storage/
+media/
+temp-uploads/
+tmp-uploads/
+.cache/
+.temp/
+.tmp/
+cache/
+scratch/
+
+# ============================================================
+# BUILD ARTIFACTS & ARCHIVES
+# ============================================================
 *.zip
 *.tar.gz
 *.rar
 *.7z
-.temp/
+*.backup
+*.old
+backup/
+backups/
+javadoc/
+apidocs/
+site/
 
-# === FERRAMENTAS DE DESENVOLVIMENTO ===
+# ============================================================
+# MISC DEVELOPMENT TOOLS
+# ============================================================
 .history/
 *.swp
 *.swo
-*~
-.project
-.settings
-.classpath
-
-# === ANSIBLE/TERRAFORM (se usar) ===
-*.tfstate
-*.tfstate.*
-.terraform/
-ansible.cfg
-
-# === JETBRAINS ESPECÍFICO ===
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
-.idea/**/aws.xml
-.idea/**/contentModel.xml
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
+production-opts.txt

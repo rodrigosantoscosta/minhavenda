@@ -135,28 +135,28 @@ COMMENT ON TABLE itens_carrinho IS 'Itens dentro dos carrinhos de compras';
 -- TABELA: pedidos
 -- ========================================
 CREATE TABLE pedidos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    usuario_id UUID NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'CRIADO'
-        CHECK (status IN ('CRIADO', 'PAGO', 'ENVIADO', 'ENTREGUE', 'CANCELADO')),
-    subtotal DECIMAL(10,2) NOT NULL CHECK (subtotal >= 0),
-    valor_frete DECIMAL(10,2) DEFAULT 0.00 NOT NULL CHECK (valor_frete >= 0),
-    valor_desconto DECIMAL(10,2) DEFAULT 0.00 NOT NULL CHECK (valor_desconto >= 0),
-    valor_total DECIMAL(10,2) NOT NULL CHECK (valor_total >= 0),
-    endereco_entrega VARCHAR(500) NOT NULL,
-    observacoes VARCHAR(1000),
-    quantidade_itens INTEGER NOT NULL CHECK (quantidade_itens > 0),
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    data_pagamento TIMESTAMP,
-    data_envio TIMESTAMP,
-    data_entrega TIMESTAMP,
+                         id               UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+                         usuario_id       UUID                                NOT NULL,
+                         status           VARCHAR(20)  DEFAULT 'CRIADO'       NOT NULL CHECK (status IN ('CRIADO', 'PAGO', 'ENVIADO', 'ENTREGUE', 'CANCELADO')),
+                         subtotal         DECIMAL(10,2)                       NOT NULL CHECK (subtotal >= 0),
+                         valor_frete      DECIMAL(10,2) DEFAULT 0.00          NOT NULL CHECK (valor_frete >= 0),
+                         valor_desconto   DECIMAL(10,2) DEFAULT 0.00          NOT NULL CHECK (valor_desconto >= 0),
+                         valor_total      DECIMAL(10,2)                       NOT NULL CHECK (valor_total >= 0),
+                         quantidade_itens INTEGER       DEFAULT 0             NOT NULL CHECK (quantidade_itens >= 0),
+                         endereco_entrega VARCHAR(500)                        NOT NULL,
+                         observacoes      VARCHAR(1000),
+                         codigorastreio   VARCHAR(100),
+                         transportadora   VARCHAR(100),
+                         data_criacao     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                         data_atualizacao TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                         data_pagamento   TIMESTAMP,
+                         data_envio       TIMESTAMP,
+                         data_entrega     TIMESTAMP,
 
-    CONSTRAINT fk_pedidos_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE RESTRICT
+                         CONSTRAINT fk_pedidos_usuario
+                             FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT
 );
+
 
 COMMENT ON TABLE pedidos IS 'Pedidos realizados pelos clientes';
 COMMENT ON COLUMN pedidos.quantidade_itens IS 'Total de itens no pedido (soma das quantidades)';
