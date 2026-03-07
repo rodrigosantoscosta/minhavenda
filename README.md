@@ -1,372 +1,442 @@
-# MinhaVenda - E-commerce Platform
+# MinhaVenda — Backend
 
-Sistema de e-commerce completo desenvolvido com foco em Clean Architecture e  Domain-Driven Design.
+Spring Boot 3.2 REST API for the MinhaVenda e-commerce platform, built with Clean Architecture and Domain-Driven Design.
 
----
-
-
-## Deploy em Produção
-
-- **Frontend**: https://minhavenda-frontend.vercel.app
-- **Backend API**: https://minhavenda-production.up.railway.app/api
-
-## Stack 
-
-### Backend
-- **Java 17** - 
-- **Spring Boot 3.2.1** - Framework enterprise para microsserviços
-- **Spring Security** - Autenticação e autorização com JWT
-- **Spring Data JPA** - Persistência de dados com Hibernate para desenvolvimento
-- **PostgreSQL** - Banco de dados relacional em produção
-- **Flyway** - Versionamento de banco de dados
-- **SpringDoc OpenAPI** - Documentação automática da API
-
-### Frontend
-- **React 19** - Biblioteca com React Server Components
-- **Vite** - Build tool  com HMR
-- **Tailwind CSS** - Framework CSS utility-first
-- **React Router v7** - Roteamento client-side
-- **React Hook Form** - Formulários performáticos
-- **Context API** - Gerenciamento de estado global
-- **Axios** - Cliente HTTP para requisições
-
-### Ferramentas e infraestrutura
-- **Lombok** - Redução de boilerplate
-- **MapStruct** - Mapeamento entre Entity e DTO
-- **Maven** - Gerenciamento de dependências
-- **Vercel** - Hosting frontend com CDN global
-- **Railway** - Backend-as-a-Service com PostgreSQL
+**Live URLs:**
+- Frontend: https://minhavenda-frontend.vercel.app
+- Frontend repo: https://github.com/rodrigosantoscosta/minhavenda-frontend
+- Backend API: https://minhavenda-production.up.railway.app/api
+- Swagger (local): http://localhost:8080/api/swagger-ui.html
 
 ---
 
-## Arquitetura
+## Tech Stack
 
-```
-                     ┌─────────────────────────────────────┐
-                     │         Presentation Layer          │
-                     │        (Controllers REST)           │
-                     └─────────────────────────────────────┘
-                                      ↓
-                     ┌─────────────────────────────────────┐
-                     │         Application Layer           │
-                     │   (Use Cases / DTOs / Mappers)      │
-                     └─────────────────────────────────────┘
-                                      ↓
-                     ┌─────────────────────────────────────┐
-                     │            Domain Layer             │
-                     │  (Entities / Value Objects / Regras)│
-                     └─────────────────────────────────────┘
-                                      ↓
-                     ┌─────────────────────────────────────┐
-                     │        Infrastructure Layer         │
-                     │   (Repositories / Database / Impl.) │
-                     └─────────────────────────────────────┘
-```
-### Organização dos Pacotes
-
-```
-src/main/java/br/com/minhavenda/minhavenda/
-│
-├── presentation/                          # Camada de Apresentação
-│   └── controller/                        # Controllers REST
-│       ├── ProdutoController.java
-│       ├── PedidoController.java
-│       ├── UsuarioController.java
-│       └── AuthenticationController.java
-│
-├── application/                           # Camada de Aplicação
-│   ├── dto/                              # Data Transfer Objects
-│   │   ├── ProdutoDTO.java
-│   │   ├── PedidoDTO.java
-│   │   └── AuthenticationResponse.java
-│   │
-│   ├── mapper/                           # Conversores Entity ↔ DTO
-│   │   ├── ProdutoMapper.java
-│   │   └── PedidoMapper.java
-│   │
-│   └── usecase/                          # Casos de Uso
-│       ├── produto/                      # Use Cases de Produtos
-│       ├── pedido/                       # Use Cases de Pedidos
-│       ├── usuario/                      # Use Cases de Usuários
-│       └── auth/                         # Use Cases de Autenticação
-│
-├── domain/                               # Camada de Domínio
-│   ├── entity/                          # Entidades de Negócio
-│   │   ├── Produto.java
-│   │   ├── Pedido.java
-│   │   ├── Usuario.java
-│   │   ├── Carrinho.java
-│   │   ├── Categoria.java
-│   │   └── Estoque.java
-│   │
-│   ├── valueobject/                     # Value Objects
-│   │   ├── Money.java
-│   │   └── Email.java
-│   │
-│   └── enums/                           # Enums do Domínio
-│       ├── StatusPedido.java
-│       ├── TipoUsuario.java
-│       └── StatusCarrinho.java
-│
-├── infrastructure/                       # Camada de Infraestrutura
-│   ├── persistence/
-│   │   ├── repository/                  # Interfaces Repository
-│   │   └── specification/               # Critérios de Busca
-│   │
-│   └── security/                        # Configurações de Segurança
-│       ├── JwtService.java
-│       ├── JwtAuthenticationFilter.java
-│       └── CustomUserDetailsService.java
-│
-└── config/                              # Configurações Globais
-    ├── SecurityConfig.java
-    ├── GlobalExceptionHandler.java
-    └── OpenApiConfig.java
-```
+| Layer | Technology |
+|---|---|
+| Language | Java 17 |
+| Framework | Spring Boot 3.2.1 |
+| Security | Spring Security 6 + JWT |
+| Persistence | Spring Data JPA + Hibernate |
+| Database (prod) | PostgreSQL 15 |
+| Database (dev) | H2 (in-memory) |
+| Migrations | Flyway (V1–V10) |
+| Messaging | RabbitMQ (Spring AMQP) — fully implemented |
+| Email | JavaMailSender + Mailhog (dev) |
+| API Docs | SpringDoc OpenAPI 3 (Swagger) |
+| Monitoring | Spring Actuator |
+| Boilerplate | Lombok + MapStruct |
+| Build | Maven (mvnw wrapper included) |
+| Containers | Docker + Docker Compose |
+| Deployment | Railway |
 
 ---
 
-## Funcionalidades Implementadas
+## Getting Started
 
-### Core Business
-- **Catálogo de Produtos**: Listagem, busca avançada e filtros dinâmicos
-- **Gestão de Usuários**: Registro, autenticação e perfil
-- **Carrinho de Compras**: Gerenciamento persistente de itens
-- **Processo de Checkout**: Completo com cálculo de frete
-- **Gestão de Pedidos**: Criação, acompanhamento e histórico
-- **Controle de Estoque**: Atualização em tempo real
-- **Sistema de Categorias**: Organização hierárquica
+### Prerequisites
 
-### Features Técnicas
-- **Autenticação JWT**: Stateless com refresh tokens
-- **Autorização RBAC**: Role-based access control (ADMIN/CLIENTE)
-- **Documentação API**: Swagger/OpenAPI 3.0 automática
-- **Validações**: Jakarta Validation em todas as camadas
-- **Monitoramento**: Spring Actuator + métricas Prometheus
-- **Tratamento de Erros**: Global exception handler
-- **Versionamento API**: Controle de versão por URL
-
----
-
-## Como Rodar Localmente
-
-### Pré-requisitos
 - Java 17+
-- Node.js 18+
-- PostgreSQL 14+ (opcional, H2 disponível)
-- Maven 3.8+
+- Maven 3.8+ (or use `./mvnw` wrapper — no installation needed)
+- Docker (for PostgreSQL, RabbitMQ, and Mailhog)
 
-### Backend Setup
+### 1. Clone the repository
 
-1. **Clone o repositório**
 ```bash
 git clone https://github.com/rodrigosantoscosta/minhavenda.git
 cd minhavenda
 ```
 
-2. **Configure o ambiente**
-```bash
-# Para desenvolvimento com H2 (recomendado)
-mvn spring-boot:run
+### 2. Set up environment variables
 
-# Para PostgreSQL
-cp .env.example .env
-# Configure suas credenciais no .env
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
-```
-
-3. **Acesse os serviços**
-- **API**: http://localhost:8080/api
-- **Swagger UI**: http://localhost:8080/api/swagger-ui.html
-- **H2 Console**: http://localhost:8080/h2-console (dev)
-
-### Frontend Setup
-
-1. **Navegue para o diretório frontend**
-```bash
-cd minhavenda-frontend
-```
-
-2. **Instale as dependências**
-```bash
-npm install
-```
-
-3. **Configure as variáveis de ambiente**
 ```bash
 cp .env.example .env
-# Configure a URL da API backend
+# Edit .env with your local values
 ```
 
-4. **Inicie o servidor de desenvolvimento**
+See [Environment Variables](#environment-variables) for the full list.
+
+### 3. Start dev dependencies
+
 ```bash
-npm run dev
+# Starts PostgreSQL + RabbitMQ + Mailhog
+docker compose up -d
 ```
 
-5. **Acesse a aplicação**
-- **Frontend**: http://localhost:5173
-- **Build para produção**: `npm run build`
+### 4. Run the application
 
-### Docker Setup (Opcional)
 ```bash
-# Inicie PostgreSQL 
-docker-compose up -d
+# Dev profile — H2 in-memory DB (no Docker needed)
+./mvnw spring-boot:run
 
-# Para desenvolvimento completo
-docker-compose -f docker-compose.dev.yml up --build
+# With PostgreSQL + RabbitMQ from Docker
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+### 5. Access local services
+
+| Service | URL |
+|---|---|
+| REST API | http://localhost:8080/api |
+| Swagger UI | http://localhost:8080/api/swagger-ui.html |
+| H2 Console (dev) | http://localhost:8080/api/h2-console |
+| RabbitMQ Management | http://localhost:15672 (guest / guest) |
+| Mailhog (email) | http://localhost:8025 |
+| Actuator health | http://localhost:8080/api/actuator/health |
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in your values. Never commit `.env`.
+
+| Variable | Description | Default / Example |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | JDBC URL for PostgreSQL | `jdbc:postgresql://localhost:5432/minhavenda` |
+| `SPRING_DATASOURCE_USERNAME` | DB username | `minhavenda` |
+| `SPRING_DATASOURCE_PASSWORD` | DB password | `secret` |
+| `JWT_SECRET` | JWT signing secret (min 32 chars) | — |
+| `JWT_EXPIRATION` | Token TTL in milliseconds | `86400000` (24h) |
+| `RABBITMQ_HOST` | RabbitMQ hostname | `localhost` |
+| `RABBITMQ_PORT` | RabbitMQ AMQP port | `5672` |
+| `RABBITMQ_USER` | RabbitMQ username | `guest` |
+| `RABBITMQ_PASS` | RabbitMQ password | `guest` |
+| `MAIL_HOST` | SMTP host | `localhost` (dev) |
+| `MAIL_PORT` | SMTP port | `1025` (Mailhog) |
+| `MAIL_USERNAME` | SMTP username | — |
+| `MAIL_PASSWORD` | SMTP password | — |
+| `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | `http://localhost:5173` |
+
+---
+
+## Project Structure
+
+```
+src/main/java/br/com/minhavenda/minhavenda/
+├── presentation/                  # REST controllers (HTTP layer only)
+│   └── controller/
+│       ├── AuthenticationController.java
+│       ├── ProdutoController.java
+│       ├── PedidoController.java
+│       ├── CarrinhoController.java
+│       ├── CategoriaController.java
+│       ├── EstoqueController.java
+│       ├── PerfilController.java
+│       └── AdminPedidoController.java
+│
+├── application/                   # Use Cases + DTOs + Mappers + Event publisher
+│   ├── dto/
+│   │   ├── auth/
+│   │   ├── carrinho/
+│   │   ├── pedido/
+│   │   └── produto/
+│   ├── event/
+│   │   └── DomainEventPublisher.java   # Publishes to Spring AND RabbitMQ
+│   ├── mapper/
+│   └── usecase/
+│       ├── auth/
+│       ├── categoria/
+│       ├── estoque/
+│       ├── pedido/
+│       │   ├── FinalizarCheckoutUseCase.java
+│       │   ├── PagarPedidoUseCase.java
+│       │   └── EnviarPedidoUseCase.java
+│       ├── produto/
+│       └── usuario/
+│
+├── domain/                        # Core business — zero framework deps
+│   ├── entity/                    # Aggregate roots with rich behavior
+│   │   ├── Pedido.java            # pagar(), enviar(), cancelar()
+│   │   ├── Usuario.java
+│   │   ├── Produto.java
+│   │   ├── Carrinho.java
+│   │   └── Estoque.java
+│   ├── enums/
+│   │   ├── StatusPedido.java      # CRIADO, PAGO, ENVIADO, ENTREGUE, CANCELADO
+│   │   ├── TipoUsuario.java       # ADMIN, CLIENTE
+│   │   └── StatusCarrinho.java
+│   ├── event/
+│   │   └── pedido/
+│   │       ├── PedidoCriadoEvent.java
+│   │       ├── PedidoPagoEvent.java
+│   │       ├── PedidoEnviadoEvent.java
+│   │       └── PedidoCanceladoEvent.java
+│   ├── exception/
+│   │   ├── BusinessException.java
+│   │   ├── ResourceNotFoundException.java
+│   │   └── EntityAlreadyExistsException.java
+│   └── valueobject/
+│       ├── Money.java
+│       └── Email.java
+│
+├── infrastructure/                # External concerns (framework allowed)
+│   ├── config/
+│   │   ├── RabbitMQConfig.java    # Exchange, queues, DLX, DLQ configuration
+│   │   └── SecurityConfig.java
+│   ├── persistence/
+│   │   └── repository/            # Spring Data JPA repositories
+│   ├── security/
+│   │   ├── JwtService.java
+│   │   ├── JwtAuthenticationFilter.java
+│   │   └── CustomUserDetailsService.java
+│   ├── event/
+│   │   └── listener/
+│   │       └── PedidoEventListener.java  # Bridge: Spring events → email + RabbitMQ
+│   ├── messaging/
+│   │   ├── producer/
+│   │   │   └── PedidoRabbitMQProducer.java
+│   │   ├── consumer/
+│   │   │   └── PedidoRabbitMQConsumer.java
+│   │   └── dto/                   # RabbitMQ message payloads
+│   │       ├── PedidoCriadoMessage.java
+│   │       ├── PedidoPagoMessage.java
+│   │       ├── PedidoEnviadoMessage.java
+│   │       └── PedidoCanceladoMessage.java
+│   └── notification/
+│       ├── EmailService.java
+│       ├── EmailServiceImpl.java
+│       └── NotificationService.java
+│
+└── config/
+    └── GlobalExceptionHandler.java
+
+src/main/resources/
+├── application.properties         # Base config (env vars only)
+├── application-dev.properties     # H2 + Mailhog + Swagger enabled
+└── db/migration/
+    ├── V1__create_tables.sql
+    ├── V2__create_indexes.sql
+    ├── V3__insert_categorias.sql
+    ├── V4__insert_usuarios.sql
+    ├── V5__insert_produtos.sql
+    ├── V6-V9__update_url_imagem.sql
+    └── V10__add_column_pedido.sql
 ```
 
 ---
 
-## Documentação da API
+## Architecture
 
-### Endpoints Principais
+Clean Architecture with strict inward dependencies (domain has zero framework imports):
 
-#### Autenticação
-- `POST /api/auth/login` - Login de usuário
-- `POST /api/auth/register` - Registro de novo usuário
-- `POST /api/auth/refresh` - Refresh token JWT
+```
+Presentation → Application → Domain ← Infrastructure
+```
 
-#### Produtos
-- `GET /api/produtos` - Listar produtos com paginação
-- `GET /api/produtos/{id}` - Buscar produto por ID
-- `GET /api/produtos/buscar` - Busca com filtros avançados
-- `POST /api/produtos` - Criar novo produto (admin)
+**Layer responsibilities:**
 
-#### Pedidos
-- `GET /api/pedidos` - Listar pedidos do usuário
-- `GET /api/pedidos/{id}` - Detalhes do pedido
-- `POST /api/pedidos/checkout` - Finalizar pedido
-- `PATCH /api/pedidos/{id}/status` - Atualizar status
-
-### Documentação Completa
-Acesse a documentação interativa: http://localhost:8080/api/swagger-ui.html
+- **Presentation** — HTTP in/out only. Delegates to use cases.
+- **Application** — Orchestrates use cases. Publishes domain events. No business rules.
+- **Domain** — Entities with rich behavior. Value objects. Domain events. No framework.
+- **Infrastructure** — JPA, security, email, RabbitMQ. Implements domain interfaces.
 
 ---
 
-## Banco de Dados
+## Messaging Architecture (RabbitMQ)
 
-### Schema Principal
-- **usuarios**: Gestão de usuários e roles
-- **categorias**: Categorias de produtos
-- **produtos**: Catálogo de produtos com atributos
-- **estoques**: Controle de quantidade por produto
-- **carrinhos**: Carrinhos de compra dos usuários
-- **itens_carrinho**: Items nos carrinhos
-- **pedidos**: Pedidos realizados
-- **itens_pedido**: Composição dos pedidos
-- **pagamentos**: Informações de pagamento
-- **entregas**: Dados de entrega
-- **notificacoes**: Sistema de notificações
+This project uses a **Bridge Pattern**: the existing Spring `@EventListener` chain is enriched with RabbitMQ publishing. Domain events flow through both channels simultaneously.
 
-### Migrations
-Versionamento automático com Flyway:
-- `V1__create_tables.sql` - Estrutura base
-- `V2__create_indexes.sql` - Índices de performance
-- `V3__insert_categorias.sql` - Dados iniciais
-- `V4__insert_usuarios.sql` - Usuários de exemplo
-- `V5__insert_produtos.sql` - Produtos de demonstração
-- `V6__insert_estoques.sql` - Estoques iniciais
+```
+Entity method
+    └─ registrarEvento(PedidoXEvent)
+         └─ Use Case: eventPublisher.publishAll()
+              ├─ Spring ApplicationEventPublisher
+              │    └─ PedidoEventListener (@Async)
+              │         ├─ EmailService (send email)
+              │         └─ PedidoRabbitMQProducer (publish to exchange)
+              │              └─ pedidos.exchange (topic)
+              │                   ├─ pedidos.criado
+              │                   ├─ pedidos.pago
+              │                   ├─ pedidos.enviado
+              │                   └─ pedidos.cancelado
+              └─ PedidoRabbitMQConsumer (listening on queues)
+                   └─ NotificationService (in-app notifications)
+```
 
----
+### Queue Configuration
 
-## Padrões e práticas
+| Exchange | Type | Dead Letter Exchange |
+|---|---|---|
+| `pedidos.exchange` | topic | `pedidos.dlx` |
 
-### Clean Architecture
-- Separação estrita de responsabilidades
-- Dependências apontam para o centro (Domain)
-- Business rules isoladas em entities
-- Use Cases orquestram fluxos de negócio
-
-### Domain-Driven Design
-- Entidades ricas com comportamentos
-- Value Objects para conceitos do domínio
-- Repositories abstraem persistência
-- Domain Events para desacoplamento
-
-### SOLID Principles
-- **S**: Single Responsibility Principle
-- **O**: Open/Closed Principle  
-- **L**: Liskov Substitution Principle
-- **I**: Interface Segregation Principle
-- **D**: Dependency Inversion Principle
-
-### Performance
-- Lazy loading em relações JPA
-- Índices otimizados em tabelas críticas
-- Connection pooling com HikariCP
-- Cache de consultas frequentes
-
-### Segurança
-- JWT com expiração configurável
-- BCrypt para hash de senhas
-- CORS configurado para produção
-- Input validation em todas as camadas
+| Queue | Routing Key | DLQ |
+|---|---|---|
+| `pedidos.criado` | `pedido.criado` | `pedidos.criado.dlq` |
+| `pedidos.pago` | `pedido.pago` | `pedidos.pago.dlq` |
+| `pedidos.enviado` | `pedido.enviado` | `pedidos.enviado.dlq` |
+| `pedidos.cancelado` | `pedido.cancelado` | `pedidos.cancelado.dlq` |
 
 ---
 
-## Build e Deploy
+## Domain Events
 
-### Build Backend
+| Event | Trigger | Email | RabbitMQ queue |
+|---|---|---|---|
+| `PedidoCriadoEvent` | `FinalizarCheckoutUseCase` | Confirmation | `pedidos.criado` |
+| `PedidoPagoEvent` | `PagarPedidoUseCase` | Payment confirmed | `pedidos.pago` |
+| `PedidoEnviadoEvent` | `EnviarPedidoUseCase` | Shipping + tracking | `pedidos.enviado` |
+| `PedidoCanceladoEvent` | `Pedido.cancelar()` | Cancellation notice | `pedidos.cancelado` |
+
+**Event lifecycle:**
+1. Entity method changes state and calls `registrarEvento(new XEvent(...))`
+2. Use case saves entity, calls `eventPublisher.publishAll(pedido.getDomainEvents())`
+3. Use case calls `pedido.limparEventos()` to free memory
+4. Spring dispatches async to `PedidoEventListener`
+5. Listener calls `EmailService` and `PedidoRabbitMQProducer`
+6. Producer publishes serialized message to RabbitMQ exchange
+7. `PedidoRabbitMQConsumer` receives from queue and calls `NotificationService`
+
+---
+
+## API Reference
+
+All endpoints prefixed with `/api`.
+
+### Authentication
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/auth/register` | Public | Register new user |
+| POST | `/auth/login` | Public | Login, returns JWT |
+
+### Products
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/produtos` | Public | List products (paginated) |
+| GET | `/produtos/{id}` | Public | Product detail |
+| GET | `/produtos/buscar` | Public | Search with filters |
+| POST | `/produtos` | Admin | Create product |
+
+### Cart
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/carrinho` | User | Get current cart |
+| POST | `/carrinho/items` | User | Add item |
+| PUT | `/carrinho/items/{id}` | User | Update quantity |
+| DELETE | `/carrinho/items/{id}` | User | Remove item |
+
+### Orders
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/meus-pedidos` | User | List user's orders |
+| GET | `/pedidos/{id}` | User | Order detail |
+| POST | `/checkout/finalizar` | User | Create order from cart |
+| POST | `/pedidos/{id}/pagar` | User | Simulate payment |
+| POST | `/pedidos/{id}/cancelar` | User | Cancel order |
+
+### Admin — Orders
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/admin/pedidos` | Admin | List all orders |
+| POST | `/admin/pedidos/{id}/enviar` | Admin | Mark as shipped (fires email + RabbitMQ) |
+| POST | `/admin/pedidos/{id}/cancelar` | Admin | Cancel order |
+
+Full interactive docs: http://localhost:8080/api/swagger-ui.html
+
+---
+
+## Database
+
+Managed by Flyway — never modify applied migrations, always create a new versioned file.
+
+| Table | Description |
+|---|---|
+| `usuarios` | Users and roles |
+| `categorias` | Product categories |
+| `produtos` | Product catalogue |
+| `estoques` | Per-product stock levels |
+| `carrinhos` | User shopping carts |
+| `itens_carrinho` | Cart line items |
+| `pedidos` | Orders |
+| `itens_pedido` | Order line items |
+| `pagamentos` | Payment records |
+| `entregas` | Delivery records |
+| `notificacoes` | In-app notifications |
+
+---
+
+## Available Scripts
+
 ```bash
-# Build completo
-mvn clean package
+# Run (dev profile — H2, no Docker needed)
+./mvnw spring-boot:run
 
-# Pular testes (CI/CD)
-mvn clean package -DskipTests
+# Run (with PostgreSQL + RabbitMQ from Docker)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 
-# Docker image
+# Tests
+./mvnw test
+./mvnw test -Dtest=ClassName          # Single test class
+./mvnw verify                         # Tests + coverage
+
+# Build
+./mvnw clean package                  # Build JAR
+./mvnw clean package -DskipTests      # Skip tests
+
+# Docker
+docker compose up -d                  # Start PostgreSQL + RabbitMQ + Mailhog
+docker compose down                   # Stop all
+docker compose logs -f                # Stream logs
+docker compose logs rabbitmq          # RabbitMQ logs only
+```
+
+---
+
+## Email Testing (Mailhog)
+
+All dev emails are captured by Mailhog — no real emails sent.
+
+1. Start: `docker compose up -d`
+2. Open: http://localhost:8025
+3. Trigger an order status change via Swagger
+4. Email appears instantly in Mailhog UI
+
+---
+
+## RabbitMQ Management UI
+
+1. Start: `docker compose up -d`
+2. Open: http://localhost:15672 (user: `guest`, pass: `guest`)
+3. Navigate to Queues to inspect `pedidos.criado`, `pedidos.pago`, etc.
+4. Dead Letter Queues (`*.dlq`) hold failed messages for inspection/retry
+
+---
+
+## Contributor & Agent Guidelines
+
+- See [`AGENTS.md`](./AGENTS.md) for all coding rules, patterns, and conventions.
+- See [`NEXT_STEPS.md`](./NEXT_STEPS.md) for pending work and known issues.
+- See [`LAST_CHANGES.md`](./LAST_CHANGES.md) for a session-by-session changelog.
+
+Key rules at a glance:
+- Always run `./mvnw test` before committing
+- Never put business logic in controllers
+- Always emit domain events from entity methods, publish from use cases
+- Publish events AFTER saving: `eventPublisher.publishAll()` then `limparEventos()`
+- Never commit `.env`, `application-prod.properties`, or any secrets
+- Never modify already-applied Flyway migrations
+
+---
+
+## Deployment
+
+| Target | Platform | Notes |
+|---|---|---|
+| Backend | Railway | Auto-deploy from `main`; PostgreSQL + RabbitMQ managed by Railway |
+| Frontend | Vercel | Separate repo at `minhavenda-frontend` |
+
+Production build:
+```bash
+./mvnw clean package -DskipTests
+# Produces: target/minhavenda-1.0.0.jar
+```
+
+Docker image:
+```bash
 docker build -t minhavenda-backend .
+docker run -p 8080:8080 --env-file .env minhavenda-backend
 ```
-
-### Build Frontend
-```bash
-cd minhavenda-frontend
-
-# Development
-npm run dev
-
-# Production build
-npm run build
-
-# Linting
-npm run lint
-```
-
-### Deploy em Produção
-- **Frontend**: Deploy automático no Vercel via GitHub Actions
-- **Backend**: Railway com PostgreSQL gerenciado
-- **Monitoramento**: Logs centralizados e métricas em tempo real
-
----
-
-### Health Checks
-- `/actuator/health` - Status geral
-- `/actuator/health/db` - Conexão com DB
-- `/actuator/health/diskSpace` - Espaço em disco
-
----
-
-## Roadmap Futuro
-
-### Correções e melhorias
-- Correções de bugs
-- Melhorias de performance
-- Melhorias de segurança
-- Atualizações em UX e UI
-- Implementação de teste com JUnit
-- Mensageria com RabbitMQ
-
-### Features
-- Integração com gateway de pagamento
-- Sistema de avaliações de produtos
-- Sistema de notificações
-- Painel administrativo completo
-- Painel de gestão de estoque
----
-
-## Licença
-
-Este projeto está licenciado sob a MIT License.
-
----

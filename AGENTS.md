@@ -1,4 +1,4 @@
-AI coding agents guide for **MinhaVenda** e-commerce codebase.
+﻿AI coding agents guide for **MinhaVenda** e-commerce codebase.
 
 MinhaVenda is a full-stack application: Spring Boot backend (Clean Architecture/DDD) + React frontend (Vite).
 
@@ -95,11 +95,11 @@ docker-compose logs -f
 
 ```
 src/main/java/br/com/minhavenda/minhavenda/
-├── presentation/          # REST Controllers (HTTP layer)
-├── application/          # Use Cases, DTOs, Mappers, Events
-├── domain/              # Entities, Value Objects, Domain Events, Business Rules
-├── infrastructure/      # JPA Repositories, Email Service, External APIs
-└── config/             # Spring Security, CORS, Jackson, Flyway
+â”œâ”€â”€ presentation/          # REST Controllers (HTTP layer)
+â”œâ”€â”€ application/          # Use Cases, DTOs, Mappers, Events
+â”œâ”€â”€ domain/              # Entities, Value Objects, Domain Events, Business Rules
+â”œâ”€â”€ infrastructure/      # JPA Repositories, Email Service, External APIs
+â””â”€â”€ config/             # Spring Security, CORS, Jackson, Flyway
 ```
 
 **Layer Responsibilities:**
@@ -114,12 +114,12 @@ src/main/java/br/com/minhavenda/minhavenda/
 
 ```
 minhavenda-frontend/src/
-├── components/         # Reusable UI components (Button, Input, Card)
-├── pages/             # Route-level components (HomePage, ProductPage)
-├── services/          # API service layer (authService, productService)
-├── contexts/          # React contexts (AuthContext, CartContext)
-├── utils/            # Utility functions (formatters, validators)
-└── App.jsx           # Main routing and app setup
+â”œâ”€â”€ components/         # Reusable UI components (Button, Input, Card)
+â”œâ”€â”€ pages/             # Route-level components (HomePage, ProductPage)
+â”œâ”€â”€ services/          # API service layer (authService, productService)
+â”œâ”€â”€ contexts/          # React contexts (AuthContext, CartContext)
+â”œâ”€â”€ utils/            # Utility functions (formatters, validators)
+â””â”€â”€ App.jsx           # Main routing and app setup
 ```
 
 
@@ -753,7 +753,7 @@ feat(pedido): adicionar campo codigo_rastreio
 - Atualizar entidade Pedido
 - Criar evento PedidoEnviado
 
-fix(checkout): corrigir validação de estoque
+fix(checkout): corrigir validaÃ§Ã£o de estoque
 
 - Validar estoque antes de criar pedido
 - Adicionar mensagem de erro clara
@@ -850,7 +850,7 @@ spring:
 
 ---
 
-## Additional Resources
+## Rule 11 — Session Changelog (Mandatory)`n`nAfter **every agent session** that includes code changes, the agent MUST:`n`n1. **Update ``LAST_CHANGES.md``** (create if missing) — prepend a new entry at the top with:`n   - Date (``YYYY-MM-DD``)`n   - Summary of what was done and why`n   - List of files changed with a one-line description each`n   - Any gotchas or notes for the next agent`n`n2. **Update ``NEXT_STEPS.md``** (create if missing) — keep it current:`n   - Move completed items to the Completed section with the date`n   - Add any new pending items discovered during the session`n   - Maintain High / Medium / Low priority grouping`n`nThis rule exists so every agent and developer can orient themselves instantly without reading the full git history or conversation transcript.`n`n---`n`n## Additional Resources
 
 - [Spring Boot Docs](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [React Docs](https://react.dev/)

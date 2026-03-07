@@ -1,35 +1,42 @@
-# MinhaVenda - Visão Geral
+# minhavenda (E:\code\code2\minhavenda) — Project Overview
 
-## Propósito
-E-commerce full-stack com Spring Boot (Clean Architecture/DDD) + React (Vite).
+## Purpose
+Spring Boot 3.2 REST API for MinhaVenda e-commerce platform. Clean Architecture + DDD.
+This is the more advanced version — RabbitMQ is fully implemented.
 
 ## Tech Stack
-- **Backend:** Java 17, Spring Boot 3.2.1, Spring Data JPA, Spring Security, Flyway, Lombok
-- **Messaging:** Spring AMQP / RabbitMQ (spring-boot-starter-amqp já no pom.xml)
-- **Database:** PostgreSQL (prod) / H2 (dev/test)
-- **Frontend:** React 19, Vite 5, Tailwind CSS, Axios, React Router v7
-- **Docs:** SpringDoc OpenAPI (Swagger)
+- Java 17 + Spring Boot 3.2.1
+- Spring Security 6 + JWT
+- Spring Data JPA + PostgreSQL (prod) / H2 (dev)
+- Flyway migrations V1–V10
+- Spring AMQP + RabbitMQ (fully implemented: producer, consumer, DLQ)
+- JavaMailSender + Mailhog (dev email)
+- SpringDoc OpenAPI (Swagger)
+- Lombok + MapStruct
+- Maven (mvnw wrapper)
+- Docker + docker-compose (PostgreSQL + RabbitMQ + Mailhog)
+- Deployment: Railway
 
-## Package Base
-`br.com.minhavenda.minhavenda`
+## Base package
+br.com.minhavenda.minhavenda
 
-## Arquitetura (Clean Architecture / DDD)
-```
-presentation/   → REST Controllers
-application/    → Use Cases, DTOs, Mappers, Events
-domain/         → Entities, Value Objects, Domain Events, Business Rules
-infrastructure/ → JPA Repositories, Email, Notification, Security
-config/         → SecurityConfig, GlobalExceptionHandler
-```
+## Key files
+- src/main/resources/application.properties — base config (uses env vars)
+- src/main/resources/db/migration/ — Flyway migrations V1–V10
+- AGENTS.md — coding rules including Rule 11 (LAST_CHANGES + NEXT_STEPS)
+- NEXT_STEPS.md — pending work
+- LAST_CHANGES.md — session changelog
 
-## Domain Events já implementados (Spring ApplicationEventPublisher)
-- `PedidoCriadoEvent` → disparado em `FinalizarCheckoutUseCase`
-- `PedidoPagoEvent` → disparado em `PagarPedidoUseCase`
-- `PedidoEnviadoEvent` → disparado em `EnviarPedidoUseCase`
-- `PedidoCanceladoEvent` → disparado na entidade `Pedido`
+## RabbitMQ
+- Exchange: pedidos.exchange (topic)
+- Queues: pedidos.criado, pedidos.pago, pedidos.enviado, pedidos.cancelado
+- DLX: pedidos.dlx with *.dlq queues
+- Config: infrastructure/config/RabbitMQConfig.java
+- Producer: infrastructure/messaging/producer/PedidoRabbitMQProducer.java
+- Consumer: infrastructure/messaging/consumer/PedidoRabbitMQConsumer.java
+- Message DTOs: infrastructure/messaging/dto/
 
-## Event Listener atual
-`infrastructure/event/listener/PedidoEventListener.java`
-- Usa `@EventListener` + `@Async` do Spring
-- Chama `EmailService` e `NotificationService`
-- TODO: Dead Letter Queue já anotado nos catch blocks
+## Server
+- Port: 8080, Context path: /api
+- RabbitMQ Management: http://localhost:15672
+- Mailhog: http://localhost:8025
