@@ -24,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Configuração de segurança com CORS integrado.
@@ -52,18 +53,23 @@ public class SecurityConfig {
                 corsAllowedOrigins.split(",")
         ));
 
+        // Métodos HTTP permitidos (incluindo OPTIONS para preflight)
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+        ));
+
         // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
 
         // Headers expostos
-        configuration.setExposedHeaders(Arrays.asList(
+        configuration.setExposedHeaders(List.of(
                 "Authorization", "Content-Disposition"
         ));
 
         // Permitir credenciais
         configuration.setAllowCredentials(true);
 
-        // Cache
+        // Cache do preflight
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -75,7 +81,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // CSRF desabilitado (API REST stateless)

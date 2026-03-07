@@ -4,6 +4,7 @@ import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoCriadoEvent;
 import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoPagoEvent;
 import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoEnviadoEvent;
 import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoCanceladoEvent;
+import br.com.minhavenda.minhavenda.infrastructure.messaging.producer.PedidoRabbitMQProducer;
 import br.com.minhavenda.minhavenda.infrastructure.notification.EmailService;
 import br.com.minhavenda.minhavenda.infrastructure.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +20,17 @@ public class PedidoEventListener {
 
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final PedidoRabbitMQProducer rabbitMQProducer;
 
     // ========================================================================
     // PEDIDO CRIADO
     // ========================================================================
 
     /**
-     * Quando pedido é criado → Enviar email de confirmação
-     *
-     * Event disparado em: Pedido.registrarCriacao()
-     * Campos disponíveis: pedidoId, usuarioId, emailUsuario, nomeUsuario, valorTotal, quantidadeItens
+     * Quando pedido é criado:
+     *  1. Envia e-mail de confirmação
+     *  2. Cria notificação in-app
+     *  3. Publica evento no RabbitMQ (para integração com WMS, analytics, etc.)
      */
     @Async
     @EventListener
@@ -37,7 +39,6 @@ public class PedidoEventListener {
                 event.getEventId(), event.getPedidoId());
 
         try {
-            // Enviar email de confirmação
             emailService.enviarEmailPedidoCriado(
                     event.getEmailUsuario(),
                     event.getNomeUsuario(),
@@ -46,7 +47,6 @@ public class PedidoEventListener {
                     event.getQuantidadeItens()
             );
 
-            // Criar notificação in-app
             notificationService.criarNotificacao(
                     event.getUsuarioId(),
                     "✅ Pedido Criado",
@@ -55,12 +55,13 @@ public class PedidoEventListener {
                             event.getValorTotal())
             );
 
+            rabbitMQProducer.publicarPedidoCriado(event);
+
             log.info("✅ PedidoCriadoEvent processado com sucesso: {}", event.getPedidoId());
 
         } catch (Exception e) {
             log.error("❌ Erro ao processar PedidoCriadoEvent [{}] - Pedido: {}",
                     event.getEventId(), event.getPedidoId(), e);
-            // TODO: Enviar para Dead Letter Queue para retry
         }
     }
 
@@ -69,10 +70,10 @@ public class PedidoEventListener {
     // ========================================================================
 
     /**
-     * Quando pedido é pago → Enviar email de confirmação de pagamento
-     *
-     * Event disparado em: Pedido.pagar(metodoPagamento)
-     * Campos disponíveis: pedidoId, usuarioId, emailUsuario, valorTotal, metodoPagamento
+     * Quando pedido é pago:
+     *  1. Envia e-mail de confirmação de pagamento
+     *  2. Cria notificação in-app
+     *  3. Publica evento no RabbitMQ (para NF-e, WMS, ERP, etc.)
      */
     @Async
     @EventListener
@@ -81,7 +82,6 @@ public class PedidoEventListener {
                 event.getEventId(), event.getPedidoId(), event.getMetodoPagamento());
 
         try {
-            // Enviar email de confirmação de pagamento
             emailService.enviarEmailPedidoPago(
                     event.getEmailUsuario(),
                     event.getPedidoId(),
@@ -89,7 +89,6 @@ public class PedidoEventListener {
                     event.getMetodoPagamento()
             );
 
-            // Criar notificação in-app
             notificationService.criarNotificacao(
                     event.getUsuarioId(),
                     "💰 Pagamento Confirmado",
@@ -99,13 +98,14 @@ public class PedidoEventListener {
                             event.getValorPago())
             );
 
+            rabbitMQProducer.publicarPedidoPago(event);
+
             log.info("✅ PedidoPagoEvent processado com sucesso: {} - {}",
                     event.getPedidoId(), event.getMetodoPagamento());
 
         } catch (Exception e) {
             log.error("❌ Erro ao processar PedidoPagoEvent [{}] - Pedido: {}",
                     event.getEventId(), event.getPedidoId(), e);
-            // TODO: Enviar para Dead Letter Queue para retry
         }
     }
 
@@ -114,12 +114,10 @@ public class PedidoEventListener {
     // ========================================================================
 
     /**
-     * Quando pedido é enviado → Enviar email com código de rastreio
-     *
-     * Event disparado em: Pedido.enviar(codigoRastreio, transportadora, telefone)
-     * Campos disponíveis: pedidoId, usuarioId, nomeUsuario, emailUsuario, telefone, codigoRastreio, transportadora
-     *
-     * NOTA: O construtor do evento usa ordem: (id, usuarioId, nomeUsuario, emailUsuario, telefone, rastreio, transportadora)
+     * Quando pedido é enviado:
+     *  1. Envia e-mail com código de rastreio
+     *  2. Cria notificação in-app
+     *  3. Publica evento no RabbitMQ (para transportadora, dashboard, etc.)
      */
     @Async
     @EventListener
@@ -128,7 +126,6 @@ public class PedidoEventListener {
                 event.getEventId(), event.getPedidoId(), event.getCodigoRastreio());
 
         try {
-            // Enviar email com código de rastreio
             emailService.enviarEmailPedidoEnviado(
                     event.getEmailUsuario(),
                     event.getNomeUsuario(),
@@ -138,7 +135,6 @@ public class PedidoEventListener {
                     event.getTelefone()
             );
 
-            // Criar notificação in-app
             notificationService.criarNotificacao(
                     event.getUsuarioId(),
                     "📦 Pedido Enviado",
@@ -148,13 +144,14 @@ public class PedidoEventListener {
                             event.getCodigoRastreio())
             );
 
+            rabbitMQProducer.publicarPedidoEnviado(event);
+
             log.info("✅ PedidoEnviadoEvent processado com sucesso: {} - Rastreio: {} - Transportadora: {}",
                     event.getPedidoId(), event.getCodigoRastreio(), event.getTransportadora());
 
         } catch (Exception e) {
             log.error("❌ Erro ao processar PedidoEnviadoEvent [{}] - Pedido: {}",
                     event.getEventId(), event.getPedidoId(), e);
-            // TODO: Enviar para Dead Letter Queue para retry
         }
     }
 
@@ -163,12 +160,10 @@ public class PedidoEventListener {
     // ========================================================================
 
     /**
-     * Quando pedido é cancelado → Enviar email de cancelamento
-     *
-     * Event disparado em: Pedido.cancelar(motivo)
-     * Campos disponíveis: pedidoId, usuarioId, emailUsuario, motivo
-     *
-     * NOTA: O evento NÃO tem valorTotal (diferente dos outros)
+     * Quando pedido é cancelado:
+     *  1. Envia e-mail de cancelamento
+     *  2. Cria notificação in-app
+     *  3. Publica evento no RabbitMQ (para estorno de estoque, reembolso, etc.)
      */
     @Async
     @EventListener
@@ -177,14 +172,12 @@ public class PedidoEventListener {
                 event.getEventId(), event.getPedidoId(), event.getMotivo());
 
         try {
-            // Enviar email de cancelamento
             emailService.enviarEmailPedidoCancelado(
                     event.getEmailUsuario(),
                     event.getPedidoId(),
                     event.getMotivo()
             );
 
-            // Criar notificação in-app
             notificationService.criarNotificacao(
                     event.getUsuarioId(),
                     "❌ Pedido Cancelado",
@@ -193,13 +186,14 @@ public class PedidoEventListener {
                             event.getMotivo())
             );
 
+            rabbitMQProducer.publicarPedidoCancelado(event);
+
             log.info("✅ PedidoCanceladoEvent processado com sucesso: {} - Motivo: {}",
                     event.getPedidoId(), event.getMotivo());
 
         } catch (Exception e) {
             log.error("❌ Erro ao processar PedidoCanceladoEvent [{}] - Pedido: {}",
                     event.getEventId(), event.getPedidoId(), e);
-            // TODO: Enviar para Dead Letter Queue para retry
         }
     }
 }
