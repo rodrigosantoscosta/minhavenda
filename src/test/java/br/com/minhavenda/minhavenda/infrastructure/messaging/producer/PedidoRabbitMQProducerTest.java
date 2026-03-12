@@ -4,7 +4,6 @@ import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoCanceladoEvent;
 import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoCriadoEvent;
 import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoEnviadoEvent;
 import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoPagoEvent;
-import br.com.minhavenda.minhavenda.infrastructure.messaging.dto.PedidoCriadoMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("PedidoRabbitMQProducer - Testes Unitários")
 class PedidoRabbitMQProducerTest {
 
+    private static final String EXPECTED_EXCHANGE = "pedidos.exchange";
+
     @Mock
     private RabbitTemplate rabbitTemplate;
 
@@ -50,15 +51,14 @@ class PedidoRabbitMQProducerTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Deve publicar PedidoCriadoEvent na exchange correta")
-    void devePublicarPedidoCriadoNaExchangeCorreta() {
+    @DisplayName("Deve publicar PedidoCriadoEvent na exchange e routing key corretas")
+    void devePublicarPedidoCriadoNaExchangeERoutingKeyCorretas() {
         PedidoCriadoEvent event = new PedidoCriadoEvent(
             pedidoId, usuarioId, "email@test.com", "João", 150.0, 3
         );
 
         producer.publicarPedidoCriado(event);
 
-        // Capture the actual call to verify exchange + routing key
         ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
         verify(rabbitTemplate).convertAndSend(
@@ -67,7 +67,7 @@ class PedidoRabbitMQProducerTest {
             (Object) any()
         );
 
-        assertThat(exchangeCaptor.getValue()).isEqualTo("pedidos.exchange");
+        assertThat(exchangeCaptor.getValue()).isEqualTo(EXPECTED_EXCHANGE);
         assertThat(routingKeyCaptor.getValue()).isEqualTo("pedido.criado");
     }
 
@@ -76,21 +76,23 @@ class PedidoRabbitMQProducerTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Deve publicar PedidoPagoEvent com routing key correta")
-    void devePublicarPedidoPagoComRoutingKeyCorreta() {
+    @DisplayName("Deve publicar PedidoPagoEvent na exchange e routing key corretas")
+    void devePublicarPedidoPagoNaExchangeERoutingKeyCorretas() {
         PedidoPagoEvent event = new PedidoPagoEvent(
             pedidoId, usuarioId, "email@test.com", 150.0, "PIX"
         );
 
         producer.publicarPedidoPago(event);
 
+        ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
         verify(rabbitTemplate).convertAndSend(
-            anyString(),
+            exchangeCaptor.capture(),
             routingKeyCaptor.capture(),
             (Object) any()
         );
 
+        assertThat(exchangeCaptor.getValue()).isEqualTo(EXPECTED_EXCHANGE);
         assertThat(routingKeyCaptor.getValue()).isEqualTo("pedido.pago");
     }
 
@@ -99,8 +101,8 @@ class PedidoRabbitMQProducerTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Deve publicar PedidoEnviadoEvent com routing key correta")
-    void devePublicarPedidoEnviadoComRoutingKeyCorreta() {
+    @DisplayName("Deve publicar PedidoEnviadoEvent na exchange e routing key corretas")
+    void devePublicarPedidoEnviadoNaExchangeERoutingKeyCorretas() {
         PedidoEnviadoEvent event = new PedidoEnviadoEvent(
             pedidoId, usuarioId, "João", "email@test.com",
             "11999999999", "BR123456", "Correios"
@@ -108,13 +110,15 @@ class PedidoRabbitMQProducerTest {
 
         producer.publicarPedidoEnviado(event);
 
+        ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
         verify(rabbitTemplate).convertAndSend(
-            anyString(),
+            exchangeCaptor.capture(),
             routingKeyCaptor.capture(),
             (Object) any()
         );
 
+        assertThat(exchangeCaptor.getValue()).isEqualTo(EXPECTED_EXCHANGE);
         assertThat(routingKeyCaptor.getValue()).isEqualTo("pedido.enviado");
     }
 
@@ -123,21 +127,23 @@ class PedidoRabbitMQProducerTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Deve publicar PedidoCanceladoEvent com routing key correta")
-    void devePublicarPedidoCanceladoComRoutingKeyCorreta() {
+    @DisplayName("Deve publicar PedidoCanceladoEvent na exchange e routing key corretas")
+    void devePublicarPedidoCanceladoNaExchangeERoutingKeyCorretas() {
         PedidoCanceladoEvent event = new PedidoCanceladoEvent(
             pedidoId, usuarioId, "email@test.com", "Desistência"
         );
 
         producer.publicarPedidoCancelado(event);
 
+        ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
         verify(rabbitTemplate).convertAndSend(
-            anyString(),
+            exchangeCaptor.capture(),
             routingKeyCaptor.capture(),
             (Object) any()
         );
 
+        assertThat(exchangeCaptor.getValue()).isEqualTo(EXPECTED_EXCHANGE);
         assertThat(routingKeyCaptor.getValue()).isEqualTo("pedido.cancelado");
     }
 

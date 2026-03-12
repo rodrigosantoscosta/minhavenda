@@ -5,31 +5,18 @@ import br.com.minhavenda.minhavenda.infrastructure.messaging.dto.PedidoCancelado
 import br.com.minhavenda.minhavenda.infrastructure.messaging.dto.PedidoCriadoMessage;
 import br.com.minhavenda.minhavenda.infrastructure.messaging.dto.PedidoEnviadoMessage;
 import br.com.minhavenda.minhavenda.infrastructure.messaging.dto.PedidoPagoMessage;
+import br.com.minhavenda.minhavenda.infrastructure.sse.SseEmitterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Consumer responsável por processar mensagens de pedido vindas do RabbitMQ.
- *
- * Cada método escuta uma fila dedicada e executa a lógica de negócio
- * correspondente ao evento recebido (ex: analytics, notificações externas,
- * integrações com ERP/WMS, etc.).
- *
- * Em caso de exceção não tratada, a mensagem é automaticamente
- * encaminhada para a Dead Letter Queue configurada em {@link RabbitMQConfig}.
- *
- * Filas ouvidas:
- *   pedidos.criado    → onPedidoCriado
- *   pedidos.pago      → onPedidoPago
- *   pedidos.enviado   → onPedidoEnviado
- *   pedidos.cancelado → onPedidoCancelado
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PedidoRabbitMQConsumer {
+
+    private final SseEmitterRegistry sseRegistry;
 
     // =========================================================================
     // PEDIDO CRIADO
@@ -38,7 +25,7 @@ public class PedidoRabbitMQConsumer {
     /**
      * Processa o evento de pedido criado.
      *
-     * Casos de uso típicos:
+     * Casos de uso tipicos:
      * - Registrar no sistema de analytics
      * - Reservar estoque no WMS
      * - Notificar sistemas de antifraude
@@ -50,10 +37,11 @@ public class PedidoRabbitMQConsumer {
         try {
             // TODO: integrar com sistema de analytics / WMS / antifraude
             log.info("✅ [RabbitMQ] PedidoCriado processado — pedidoId: {}", message.getPedidoId());
+            sseRegistry.sendEvent(message.getUsuarioId(), "pedido.criado", message);
         } catch (Exception e) {
             log.error("❌ [RabbitMQ] Erro ao processar PedidoCriado — pedidoId: {} | erro: {}",
                     message.getPedidoId(), e.getMessage(), e);
-            throw e; // Relança para que o Spring AMQP encaminhe para a DLQ
+            throw e;
         }
     }
 
@@ -64,18 +52,19 @@ public class PedidoRabbitMQConsumer {
     /**
      * Processa o evento de pedido pago.
      *
-     * Casos de uso típicos:
-     * - Confirmar separação no WMS/fulfillment
+     * Casos de uso tipicos:
+     * - Confirmar separacao no WMS/fulfillment
      * - Atualizar ERP financeiro
-     * - Emitir nota fiscal via integração
+     * - Emitir nota fiscal via integracao
      */
     @RabbitListener(queues = RabbitMQConfig.QUEUE_PEDIDO_PAGO)
     public void onPedidoPago(PedidoPagoMessage message) {
         log.info("📥 [RabbitMQ] PedidoPago recebido — pedidoId: {} | método: {} | valor: R$ {}",
                 message.getPedidoId(), message.getMetodoPagamento(), message.getValorPago());
         try {
-            // TODO: integrar com WMS (confirmar separação), ERP (financeiro), NF-e
+            // TODO: integrar com WMS (confirmar separacao), ERP (financeiro), NF-e
             log.info("✅ [RabbitMQ] PedidoPago processado — pedidoId: {}", message.getPedidoId());
+            sseRegistry.sendEvent(message.getUsuarioId(), "pedido.pago", message);
         } catch (Exception e) {
             log.error("❌ [RabbitMQ] Erro ao processar PedidoPago — pedidoId: {} | erro: {}",
                     message.getPedidoId(), e.getMessage(), e);
@@ -90,8 +79,8 @@ public class PedidoRabbitMQConsumer {
     /**
      * Processa o evento de pedido enviado.
      *
-     * Casos de uso típicos:
-     * - Registrar código de rastreio no sistema de logística
+     * Casos de uso tipicos:
+     * - Registrar codigo de rastreio no sistema de logistica
      * - Notificar transportadora via API
      * - Atualizar dashboard de acompanhamento
      */
@@ -102,6 +91,7 @@ public class PedidoRabbitMQConsumer {
         try {
             // TODO: integrar com API da transportadora, dashboard de rastreio
             log.info("✅ [RabbitMQ] PedidoEnviado processado — pedidoId: {}", message.getPedidoId());
+            sseRegistry.sendEvent(message.getUsuarioId(), "pedido.enviado", message);
         } catch (Exception e) {
             log.error("❌ [RabbitMQ] Erro ao processar PedidoEnviado — pedidoId: {} | erro: {}",
                     message.getPedidoId(), e.getMessage(), e);
@@ -116,18 +106,19 @@ public class PedidoRabbitMQConsumer {
     /**
      * Processa o evento de pedido cancelado.
      *
-     * Casos de uso típicos:
+     * Casos de uso tipicos:
      * - Estornar reserva de estoque
      * - Iniciar processo de reembolso
-     * - Atualizar relatórios de cancelamento
+     * - Atualizar relatorios de cancelamento
      */
     @RabbitListener(queues = RabbitMQConfig.QUEUE_PEDIDO_CANCELADO)
     public void onPedidoCancelado(PedidoCanceladoMessage message) {
         log.info("📥 [RabbitMQ] PedidoCancelado recebido — pedidoId: {} | motivo: {}",
                 message.getPedidoId(), message.getMotivo());
         try {
-            // TODO: estornar estoque, iniciar reembolso, atualizar relatórios
+            // TODO: estornar estoque, iniciar reembolso, atualizar relatorios
             log.info("✅ [RabbitMQ] PedidoCancelado processado — pedidoId: {}", message.getPedidoId());
+            sseRegistry.sendEvent(message.getUsuarioId(), "pedido.cancelado", message);
         } catch (Exception e) {
             log.error("❌ [RabbitMQ] Erro ao processar PedidoCancelado — pedidoId: {} | erro: {}",
                     message.getPedidoId(), e.getMessage(), e);

@@ -24,7 +24,8 @@ Spring Boot 3.2 REST API for the MinhaVenda e-commerce platform, built with Clea
 | Messaging | RabbitMQ (Spring AMQP) — fully implemented |
 | Email | JavaMailSender + Mailhog (dev) |
 | API Docs | SpringDoc OpenAPI 3 (Swagger) |
-| Monitoring | Spring Actuator |
+| Monitoring | Spring Actuator + Micrometer Prometheus |
+| Rate Limiting | Bucket4j (in-memory, per IP) |
 | Boilerplate | Lombok + MapStruct |
 | Build | Maven (mvnw wrapper included) |
 | Containers | Docker + Docker Compose |
@@ -66,12 +67,14 @@ docker compose up -d
 ### 4. Run the application
 
 ```bash
-# Dev profile — H2 in-memory DB (no Docker needed)
+# Dev profile — H2 in-memory DB, zero .env required
 ./mvnw spring-boot:run
 
 # With PostgreSQL + RabbitMQ from Docker
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
+
+> **Zero-config dev:** `application-dev.properties` ships with safe fallback defaults for all env vars (H2, RabbitMQ guest, Mailhog on port 1025, JWT dev key). New developers can run the app immediately with no `.env` setup.
 
 ### 5. Access local services
 
@@ -83,6 +86,7 @@ docker compose up -d
 | RabbitMQ Management | http://localhost:15672 (guest / guest) |
 | Mailhog (email) | http://localhost:8025 |
 | Actuator health | http://localhost:8080/api/actuator/health |
+| Prometheus metrics | http://localhost:8080/api/actuator/prometheus |
 
 ---
 
@@ -118,11 +122,13 @@ src/main/java/br/com/minhavenda/minhavenda/
 │       ├── AuthenticationController.java
 │       ├── ProdutoController.java
 │       ├── PedidoController.java
+│       ├── PedidoSseController.java    # GET /pedidos/stream (SSE real-time updates)
 │       ├── CarrinhoController.java
 │       ├── CategoriaController.java
 │       ├── EstoqueController.java
 │       ├── PerfilController.java
-│       └── AdminPedidoController.java
+│       ├── AdminPedidoController.java
+│       └── DlqAdminController.java     # POST /admin/dlq/requeue (DLQ management)
 │
 ├── application/                   # Use Cases + DTOs + Mappers + Event publisher
 │   ├── dto/
@@ -178,7 +184,8 @@ src/main/java/br/com/minhavenda/minhavenda/
 │   ├── security/
 │   │   ├── JwtService.java
 │   │   ├── JwtAuthenticationFilter.java
-│   │   └── CustomUserDetailsService.java
+│   │   ├── CustomUserDetailsService.java
+│   │   └── RateLimitingFilter.java     # Bucket4j — 10 req/min/IP on /auth/**
 │   ├── event/
 │   │   └── listener/
 │   │       └── PedidoEventListener.java  # Bridge: Spring events → email + RabbitMQ
@@ -186,12 +193,15 @@ src/main/java/br/com/minhavenda/minhavenda/
 │   │   ├── producer/
 │   │   │   └── PedidoRabbitMQProducer.java
 │   │   ├── consumer/
-│   │   │   └── PedidoRabbitMQConsumer.java
-│   │   └── dto/                   # RabbitMQ message payloads
-│   │       ├── PedidoCriadoMessage.java
-│   │       ├── PedidoPagoMessage.java
-│   │       ├── PedidoEnviadoMessage.java
-│   │       └── PedidoCanceladoMessage.java
+│   │   │   └── PedidoRabbitMQConsumer.java  # Pushes SSE events after each message
+│   │   ├── dto/                   # RabbitMQ message payloads
+│   │   │   ├── PedidoCriadoMessage.java
+│   │   │   ├── PedidoPagoMessage.java
+│   │   │   ├── PedidoEnviadoMessage.java
+│   │   │   └── PedidoCanceladoMessage.java
+│   │   └── DlqRequeueService.java  # Requeue messages from *.dlq back to main exchange
+│   ├── sse/
+│   │   └── SseEmitterRegistry.java # Thread-safe SSE emitter registry (userId → emitter)
 │   └── notification/
 │       ├── EmailService.java
 │       ├── EmailServiceImpl.java
@@ -250,7 +260,8 @@ Entity method
               │                   ├─ pedidos.enviado
               │                   └─ pedidos.cancelado
               └─ PedidoRabbitMQConsumer (listening on queues)
-                   └─ NotificationService (in-app notifications)
+                   ├─ NotificationService (in-app notifications)
+                   └─ SseEmitterRegistry.sendEvent() → frontend via SSE
 ```
 
 ### Queue Configuration
@@ -270,12 +281,12 @@ Entity method
 
 ## Domain Events
 
-| Event | Trigger | Email | RabbitMQ queue |
-|---|---|---|---|
-| `PedidoCriadoEvent` | `FinalizarCheckoutUseCase` | Confirmation | `pedidos.criado` |
-| `PedidoPagoEvent` | `PagarPedidoUseCase` | Payment confirmed | `pedidos.pago` |
-| `PedidoEnviadoEvent` | `EnviarPedidoUseCase` | Shipping + tracking | `pedidos.enviado` |
-| `PedidoCanceladoEvent` | `Pedido.cancelar()` | Cancellation notice | `pedidos.cancelado` |
+| Event | Trigger | Email | RabbitMQ queue | SSE event |
+|---|---|---|---|---|
+| `PedidoCriadoEvent` | `FinalizarCheckoutUseCase` | Confirmation | `pedidos.criado` | `pedido.criado` |
+| `PedidoPagoEvent` | `PagarPedidoUseCase` | Payment confirmed | `pedidos.pago` | `pedido.pago` |
+| `PedidoEnviadoEvent` | `EnviarPedidoUseCase` | Shipping + tracking | `pedidos.enviado` | `pedido.enviado` |
+| `PedidoCanceladoEvent` | `Pedido.cancelar()` | Cancellation notice | `pedidos.cancelado` | `pedido.cancelado` |
 
 **Event lifecycle:**
 1. Entity method changes state and calls `registrarEvento(new XEvent(...))`
@@ -326,14 +337,31 @@ All endpoints prefixed with `/api`.
 | POST | `/checkout/finalizar` | User | Create order from cart |
 | POST | `/pedidos/{id}/pagar` | User | Simulate payment |
 | POST | `/pedidos/{id}/cancelar` | User | Cancel order |
+| GET | `/pedidos/stream` | User | SSE stream — real-time order status updates |
 
 ### Admin — Orders
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/admin/pedidos` | Admin | List all orders |
+| GET | `/admin/pedidos/status/{status}` | Admin | Filter orders by status |
+| GET | `/admin/pedidos/{id}` | Admin | Order detail |
+| POST | `/admin/pedidos/{id}/pagar` | Admin | Mark as paid (fires email + RabbitMQ) |
 | POST | `/admin/pedidos/{id}/enviar` | Admin | Mark as shipped (fires email + RabbitMQ) |
+| POST | `/admin/pedidos/{id}/entregar` | Admin | Mark as delivered |
 | POST | `/admin/pedidos/{id}/cancelar` | Admin | Cancel order |
+
+### Admin — DLQ
+
+Endpoints to reprocess messages that failed in the RabbitMQ consumer and were routed to a Dead Letter Queue.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/admin/dlq/queues` | Admin | List all DLQs |
+| POST | `/admin/dlq/requeue/{queue}` | Admin | Requeue all messages from a specific DLQ |
+| POST | `/admin/dlq/requeue-all` | Admin | Requeue all messages from all DLQs |
+
+Valid `{queue}` values: `pedidos.criado.dlq`, `pedidos.pago.dlq`, `pedidos.enviado.dlq`, `pedidos.cancelado.dlq`
 
 Full interactive docs: http://localhost:8080/api/swagger-ui.html
 
@@ -397,12 +425,52 @@ All dev emails are captured by Mailhog — no real emails sent.
 
 ---
 
+## Real-time Order Updates (SSE)
+
+The backend exposes a Server-Sent Events stream that pushes order status changes to the authenticated user in real time, eliminating the need for polling.
+
+**Endpoint:** `GET /api/pedidos/stream` (requires JWT)
+
+**Frontend usage:**
+```javascript
+const source = new EventSource('http://localhost:8080/api/pedidos/stream', {
+  headers: { Authorization: 'Bearer ' + token }
+});
+
+source.addEventListener('pedido.pago',      e => console.log('Paid!',      JSON.parse(e.data)));
+source.addEventListener('pedido.enviado',   e => console.log('Shipped!',   JSON.parse(e.data)));
+source.addEventListener('pedido.cancelado', e => console.log('Cancelled!', JSON.parse(e.data)));
+source.addEventListener('pedido.criado',    e => console.log('Created!',   JSON.parse(e.data)));
+
+// Reconnect on close (timeout after 5 min)
+source.onerror = () => source.close();
+```
+
+Events are triggered automatically when `PedidoRabbitMQConsumer` processes a message. Each event payload is the corresponding `Pedido*Message` DTO serialized as JSON.
+
+---
+
+## Security
+
+### Rate Limiting
+
+`/auth/login` and `/auth/register` are protected against brute-force attacks via **Bucket4j** in-memory rate limiting:
+
+- **Limit:** 10 requests per minute per IP address
+- **Response on breach:** `429 Too Many Requests` with `Retry-After: 60` header
+- **Implementation:** `RateLimitingFilter` (registered before JWT filter in `SecurityConfig`)
+
+For multi-instance deployments, migrate `RateLimitingFilter` to use a shared store (Redis + Bucket4j Redis integration).
+
+---
+
 ## RabbitMQ Management UI
 
 1. Start: `docker compose up -d`
 2. Open: http://localhost:15672 (user: `guest`, pass: `guest`)
 3. Navigate to Queues to inspect `pedidos.criado`, `pedidos.pago`, etc.
 4. Dead Letter Queues (`*.dlq`) hold failed messages for inspection/retry
+5. Use the admin requeue API to reprocess failed messages (see [Admin — DLQ](#admin--dlq))
 
 ---
 

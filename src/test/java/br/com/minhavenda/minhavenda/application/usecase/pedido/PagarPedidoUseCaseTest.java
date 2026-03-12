@@ -5,16 +5,20 @@ import br.com.minhavenda.minhavenda.domain.entity.Pedido;
 import br.com.minhavenda.minhavenda.domain.entity.Usuario;
 import br.com.minhavenda.minhavenda.domain.enums.StatusPedido;
 import br.com.minhavenda.minhavenda.domain.enums.TipoUsuario;
+import br.com.minhavenda.minhavenda.domain.event.DomainEvent;
+import br.com.minhavenda.minhavenda.domain.event.pedido.PedidoPagoEvent;
 import br.com.minhavenda.minhavenda.infrastructure.persistence.repository.PedidoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -80,14 +84,23 @@ class PagarPedidoUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve publicar eventos após pagamento")
-    void devePublicarEventos() {
+    @DisplayName("Deve publicar PedidoPagoEvent com o método de pagamento correto")
+    void devePublicarPedidoPagoEventComMetodoCorreto() {
         when(pedidoRepository.findById(pedidoId)).thenReturn(Optional.of(pedido));
         when(pedidoRepository.save(any(Pedido.class))).thenAnswer(inv -> inv.getArgument(0));
 
         pagarPedidoUseCase.executar(pedidoId, "BOLETO");
 
-        verify(eventPublisher, times(1)).publishAll(any());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<DomainEvent>> eventsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(eventPublisher).publishAll(eventsCaptor.capture());
+
+        List<DomainEvent> publishedEvents = eventsCaptor.getValue();
+        assertThat(publishedEvents).hasSize(1);
+        assertThat(publishedEvents.get(0)).isInstanceOf(PedidoPagoEvent.class);
+
+        PedidoPagoEvent pagoEvent = (PedidoPagoEvent) publishedEvents.get(0);
+        assertThat(pagoEvent.getMetodoPagamento()).isEqualTo("BOLETO");
     }
 
     @Test

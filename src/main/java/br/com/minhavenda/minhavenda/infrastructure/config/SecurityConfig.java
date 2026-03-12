@@ -40,6 +40,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final br.com.minhavenda.minhavenda.infrastructure.security.RateLimitingFilter rateLimitingFilter;
 
     /**
      * Configuração de CORS integrada ao Spring Security.
@@ -114,6 +115,9 @@ public class SecurityConfig {
 
                 // Provider de autenticação
                 .authenticationProvider(authenticationProvider())
+
+                // Filtro de Rate Limiting (antes do JWT)
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
 
                 // Filtro JWT
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
