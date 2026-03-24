@@ -1,6 +1,9 @@
-# MinhaVenda — Backend
+# MinhaVenda — Backend (Spring Boot)
 
 Spring Boot 3.2 REST API for the MinhaVenda e-commerce platform, built with Clean Architecture and Domain-Driven Design.
+
+> **NestJS port:** A TypeScript/NestJS re-implementation of this same API is available at  
+> [`minhavenda-nestjs`](https://github.com/rodrigosantoscosta/minhavenda-nestjs) — runs on **port 3000**.
 
 **Live URLs:**
 - Frontend: https://minhavenda-frontend.vercel.app
@@ -22,14 +25,27 @@ Spring Boot 3.2 REST API for the MinhaVenda e-commerce platform, built with Clea
 | Database (dev) | H2 (in-memory) |
 | Migrations | Flyway (V1–V10) |
 | Messaging | RabbitMQ (Spring AMQP) — fully implemented |
+| Real-time | Server-Sent Events (SSE) — order status stream |
 | Email | JavaMailSender + Mailhog (dev) |
 | API Docs | SpringDoc OpenAPI 3 (Swagger) |
 | Monitoring | Spring Actuator + Micrometer Prometheus |
-| Rate Limiting | Bucket4j (in-memory, per IP) |
+| Rate Limiting | Bucket4j (in-memory, 10 req/min per IP) |
 | Boilerplate | Lombok + MapStruct |
 | Build | Maven (mvnw wrapper included) |
 | Containers | Docker + Docker Compose |
 | Deployment | Railway |
+
+---
+
+## Related Projects
+
+| Project | Language / Framework | Port | Repo |
+|---|---|---|---|
+| **minhavenda** (this) | Java 17 / Spring Boot 3.2 | `8080` | [rodrigosantoscosta/minhavenda](https://github.com/rodrigosantoscosta/minhavenda) |
+| **minhavenda-nestjs** | TypeScript / NestJS 11 | `3000` | [rodrigosantoscosta/minhavenda-nestjs](https://github.com/rodrigosantoscosta/minhavenda-nestjs) |
+| **minhavenda-frontend** | React / Vite | `5173` | [rodrigosantoscosta/minhavenda-frontend](https://github.com/rodrigosantoscosta/minhavenda-frontend) |
+
+Both backends expose the same REST API contract (`/api` prefix), use PostgreSQL + RabbitMQ, and implement Clean Architecture + DDD. The NestJS version additionally includes **Redis cache-aside** layer.
 
 ---
 
